@@ -1,10 +1,12 @@
 package com.sn.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -12,31 +14,40 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * 主要内容是，授权操作，用户访问某一个资源时，去检查是否具备对应的角色/权限，如果具备就允许访问，否则不允许
+ * 主要内容是，使用Spring Security默认提供数据库存库支持存储用户信息
  */
 //@Configuration
-public class SecurityConfig3 extends WebSecurityConfigurerAdapter {
+public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    DataSource dataSource;
 
     /**
-     * Spring Security 支持多种数据源，例如内存、数据库等，
-     * 这些不同来源的数据被共同封装成了一个 UserDetailService 接口，
-     * 任何实现了该接口的对象都可以作为认证数据源
-     * <p>
-     * 作用和之前使用auth.inMemoryAuthentication()类似
+     * 提前在数据库添加好用户信息，这里为了方便测试，通过代码添加了一个用户
+     * 需要我们自己创建好数据库，建好表
+     * 创建表的脚本在这里，将里边的varchar_ignorecase（HSQLDB 数据库字段类型） 改为 varchar
+     * org/springframework/security/core/userdetails/jdbc/users.ddl
+     * 最终的脚本如下：
+     * create table users(username varchar(50) not null primary key,password varchar(500) not null,enabled boolean not null);
+     * create table authorities (username varchar(50) not null,authority varchar(50) not null,constraint fk_authorities_users foreign key(username) references users(username));
+     * create unique index ix_auth_username on authorities (username,authority);
      */
     @Bean
     public UserDetailsService userDetailsService() {
-        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        String password = "$2a$10$mqBQ.tei6Sg0q.pUFCT14OstgPKQ6/cBq7IZp1QXHICe2SrCgoDdO";
-        manager.createUser(User.withUsername("root").password(password).roles("admin").build());
-        manager.createUser(User.withUsername("zhangsan").password(password).roles("user").build());
+        JdbcUserDetailsManager manager = new JdbcUserDetailsManager();
+        manager.setDataSource(dataSource);
+        if (!manager.userExists("root")) {
+            String password = "$2a$10$mqBQ.tei6Sg0q.pUFCT14OstgPKQ6/cBq7IZp1QXHICe2SrCgoDdO";
+            manager.createUser(User.withUsername("root").password(password).roles("admin").build());
+        }
         return manager;
     }
 
@@ -60,7 +71,7 @@ public class SecurityConfig3 extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        // 使用内存中定义的用户
+        // 使用数据库中定义的用户
         auth.userDetailsService(userDetailsService()).passwordEncoder(bCryptPasswordEncoder);
     }
 
@@ -98,6 +109,8 @@ public class SecurityConfig3 extends WebSecurityConfigurerAdapter {
                     String message = "登录失败，请稍后再试！";
                     if (e instanceof BadCredentialsException) {
                         message = "用户名或者密码错误，请重新输入！";
+                    }else if (e instanceof DisabledException){
+                        message = "账号被禁用，请联系管理员！";
                     }
                     writeMessage(httpServletResponse, message);
                 })
