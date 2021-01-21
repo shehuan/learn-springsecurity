@@ -1,22 +1,57 @@
 package com.sn.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * 主要内容是，前后端分离的登录相关配置
+ * 主要内容是，授权操作，用户访问某一个资源时，去检查是否具备对应的角色/权限，如果具备就允许访问，否则不允许
  */
-//@Configuration
-public class SecurityConfig2 extends WebSecurityConfigurerAdapter {
+@Configuration
+public class SecurityConfig3 extends WebSecurityConfigurerAdapter {
+
+    /**
+     * Spring Security 支持多种数据源，例如内存、数据库等，
+     * 这些不同来源的数据被共同封装成了一个 UserDetailService 接口，
+     * 任何实现了该接口的对象都可以作为认证数据源
+     * <p>
+     * 作用和之前使用auth.inMemoryAuthentication()类似
+     */
+    @Bean
+    public UserDetailsService userDetailsService() {
+        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+        String password = "$2a$10$mqBQ.tei6Sg0q.pUFCT14OstgPKQ6/cBq7IZp1QXHICe2SrCgoDdO";
+        manager.createUser(User.withUsername("root").password(password).roles("admin").build());
+        manager.createUser(User.withUsername("zhangsan").password(password).roles("user").build());
+        return manager;
+    }
+
+    /**
+     * 角色继承
+     */
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
+        // ROLE_admin角色继承了ROLE_user角色，这样就有了ROLE_user角色的所有权限
+        roleHierarchy.setHierarchy("ROLE_admin > ROLE_user");
+        return roleHierarchy;
+    }
+
     @Override
     public void configure(WebSecurity web) throws Exception {
         // 不拦截静态资源
@@ -27,19 +62,25 @@ public class SecurityConfig2 extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         // 使用内存中定义的用户
-        auth.inMemoryAuthentication()
-                .passwordEncoder(bCryptPasswordEncoder)
-                .withUser("root")
-                // 123456
-                .password("$2a$10$mqBQ.tei6Sg0q.pUFCT14OstgPKQ6/cBq7IZp1QXHICe2SrCgoDdO")
-                // 设置角色，会给角色名前边添加 ROLE_
-                .roles("admin");
+        auth.userDetailsService(userDetailsService()).passwordEncoder(bCryptPasswordEncoder);
     }
 
+
+    /**
+     * Ant 风格的路径匹配符
+     * **	匹配多层路径
+     * *	匹配任意多个字符
+     * ?	匹配任意单个字符
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                // 登录后可以访问所有请求
+                // 访问满足/admin/**格式的请求路径，则用户需要具备admin角色
+                .antMatchers("/admin/**").hasRole("admin")
+                // 访问满足/user/**格式的请求路径，则用户需要具备user角色
+                .antMatchers("/user/**").hasRole("user")
+                // anyRequest()代表其它的请求，需要出现在antMatchers()之后，
+                // 下边表示除了前面拦截规则之外的请求，其它的请求需要登录后才可以访问，当然访问拦截规则中的请求也是需要先登录后的
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
