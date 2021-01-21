@@ -1,9 +1,12 @@
 package com.sn.security2.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sn.security2.config.code.MyAuthenticationProvider;
+import com.sn.security2.config.code.MyWebAuthenticationDetailsSource;
 import com.sn.security2.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.*;
@@ -12,18 +15,34 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 /**
  * 主要内容是，Spring Security 整合 mybatis 来操作数据库
  */
-//@Configuration
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+@Configuration
+public class SecurityConfig2 extends WebSecurityConfigurerAdapter {
     @Autowired
     UserService userService;
+
+    @Autowired
+    MyWebAuthenticationDetailsSource myWebAuthenticationDetailsSource;
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        ProviderManager providerManager = new ProviderManager(Arrays.asList(myAuthenticationProvider()));
+        return providerManager;
+    }
 
     /**
      * 角色继承
@@ -44,9 +63,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         // 使用数据库中定义的用户
-        auth.userDetailsService(userService).passwordEncoder(bCryptPasswordEncoder);
+        auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
     }
 
 
@@ -59,6 +77,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
+                // 不拦截验证码接口
+                .antMatchers("/verify_code").permitAll()
                 // 访问满足/admin/**格式的请求路径，则用户需要具备admin角色
                 .antMatchers("/admin/**").hasRole("admin")
                 // 访问满足/user/**格式的请求路径，则用户需要具备user角色
@@ -68,6 +88,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
+                .authenticationDetailsSource(myWebAuthenticationDetailsSource)
                 // 设置自定义的登录页面
                 // 如果配置为static目录下的/login.html，则默认会生成一个POST类型的/login.html接口来处理登陆逻辑，可以不用配置loginProcessingUrl
                 .loginPage("/login")
@@ -91,6 +112,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         message = "账号过期！";
                     } else if (e instanceof CredentialsExpiredException) {
                         message = "密码过期！";
+                    }else if (e instanceof AuthenticationServiceException){
+                        message = e.getMessage();
                     }
                     writeMessage(httpServletResponse, message);
                 })
@@ -123,5 +146,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         out.write(message);
         out.flush();
         out.close();
+    }
+
+    @Bean
+    MyAuthenticationProvider myAuthenticationProvider() {
+        MyAuthenticationProvider myAuthenticationProvider = new MyAuthenticationProvider();
+        myAuthenticationProvider.setUserDetailsService(userService);
+        myAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        return myAuthenticationProvider;
     }
 }
