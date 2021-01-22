@@ -23,10 +23,10 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 
 /**
- * 主要内容是，Spring Security 登录验证码
+ * 主要内容是，Spring Security remember me
  */
-//@Configuration
-public class SecurityConfig2 extends WebSecurityConfigurerAdapter {
+@Configuration
+public class SecurityConfig3 extends WebSecurityConfigurerAdapter {
     @Autowired
     UserService userService;
 
@@ -112,7 +112,7 @@ public class SecurityConfig2 extends WebSecurityConfigurerAdapter {
                         message = "账号过期！";
                     } else if (e instanceof CredentialsExpiredException) {
                         message = "密码过期！";
-                    }else if (e instanceof AuthenticationServiceException){
+                    } else if (e instanceof AuthenticationServiceException) {
                         message = e.getMessage();
                     }
                     writeMessage(httpServletResponse, message);
@@ -135,6 +135,17 @@ public class SecurityConfig2 extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint((httpServletRequest, httpServletResponse, e) -> {
                     writeMessage(httpServletResponse, "尚未登录，请先登录！");
                 })
+                .and()
+                // 测试自动登录功能
+                // remember-me cookie的生成逻辑在：TokenBasedRememberMeServices#onLoginSuccess
+                // 首次登录后，关闭浏览器、重启服务的认证流程在：RememberMeAuthenticationFilter#doFilter
+                .rememberMe()
+                .userDetailsService(userService)
+                // key 默认值是一个 UUID 字符串，这样会带来一个问题，就是如果服务端重启，
+                // 这个 key 会变，这样就导致之前派发出去的所有 remember-me 自动登录令牌失效
+                .key("shehuan")
+                // 自动登录的过期时间，默认两周
+                .tokenValiditySeconds(30 * 60)
                 .and()
                 // 关闭csrf
                 .csrf().disable();
