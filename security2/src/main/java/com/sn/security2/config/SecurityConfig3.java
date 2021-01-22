@@ -3,6 +3,7 @@ package com.sn.security2.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sn.security2.config.code.MyAuthenticationProvider;
 import com.sn.security2.config.code.MyWebAuthenticationDetailsSource;
+import com.sn.security2.service.MyBatisTokenRepositoryImpl;
 import com.sn.security2.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +24,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 
 /**
- * 主要内容是，Spring Security remember me
+ * 主要内容是，Spring Security remember me、token持久化
  */
 @Configuration
 public class SecurityConfig3 extends WebSecurityConfigurerAdapter {
@@ -32,6 +33,12 @@ public class SecurityConfig3 extends WebSecurityConfigurerAdapter {
 
     @Autowired
     MyWebAuthenticationDetailsSource myWebAuthenticationDetailsSource;
+
+    // 实现 token 持久化的数据库操作，需要自己建表：
+    // create table persistent_logins (username varchar(64) not null, series varchar(64) primary key, token varchar(64) not null, last_used timestamp not null);
+    // 图简单也可以使用内置的JdbcTokenRepositoryImpl，其内部使用jdbc template，需要引入对应依赖
+    @Autowired
+    MyBatisTokenRepositoryImpl myBatisTokenRepositoryImpl;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -83,6 +90,8 @@ public class SecurityConfig3 extends WebSecurityConfigurerAdapter {
                 .antMatchers("/admin/**").hasRole("admin")
                 // 访问满足/user/**格式的请求路径，则用户需要具备user角色
                 .antMatchers("/user/**").hasRole("user")
+                // 勾选了记住我则无法访问，必须是通过用户名密码登录的，如果使用rememberMe()则访问对应请求时必须勾选记住我
+                .antMatchers("/admin/**").fullyAuthenticated()
                 // anyRequest()代表其它的请求，需要出现在antMatchers()之后，
                 // 下边表示除了前面拦截规则之外的请求，其它的请求需要登录后才可以访问，当然访问拦截规则中的请求也是需要先登录后的
                 .anyRequest().authenticated()
@@ -141,11 +150,15 @@ public class SecurityConfig3 extends WebSecurityConfigurerAdapter {
                 // 首次登录后，关闭浏览器、重启服务的认证流程在：RememberMeAuthenticationFilter#doFilter
                 .rememberMe()
                 .userDetailsService(userService)
+                // token 持久化操作的服务
+                // 重要的逻辑在PersistentTokenBasedRememberMeServices类里
+                // 其中onLoginSuccess完成token持久化的功能，processAutoLoginCookie方法完成token验证的功能
+                .tokenRepository(myBatisTokenRepositoryImpl)
                 // key 默认值是一个 UUID 字符串，这样会带来一个问题，就是如果服务端重启，
                 // 这个 key 会变，这样就导致之前派发出去的所有 remember-me 自动登录令牌失效
                 .key("shehuan")
                 // 自动登录的过期时间，默认两周
-                .tokenValiditySeconds(30 * 60)
+                .tokenValiditySeconds(10 * 60)
                 .and()
                 // 关闭csrf
                 .csrf().disable();
