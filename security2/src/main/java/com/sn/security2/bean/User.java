@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 @Alias("user")
 public class User implements UserDetails {
@@ -123,11 +124,14 @@ public class User implements UserDetails {
 
     @Override
     public int hashCode() {
-        return username.hashCode();
+        return Objects.hash(username);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return this.toString().equals(obj.toString());
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        User user = (User) obj;
+        return Objects.equals(username, user.username);
     }
 }

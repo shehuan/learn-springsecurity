@@ -23,6 +23,7 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 import java.util.Arrays;
 
 /**
@@ -88,6 +89,8 @@ public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 // 不拦截验证码接口
                 .antMatchers("/verify_code").permitAll()
+                // 为了给登录页面传参，展示错误信息，所以要配置这个
+                .antMatchers("/login").permitAll()
                 // 访问满足/admin/**格式的请求路径，则用户需要具备admin角色
                 .antMatchers("/admin/**").hasRole("admin")
                 // 访问满足/user/**格式的请求路径，则用户需要具备user角色
@@ -126,7 +129,10 @@ public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
                     } else if (e instanceof AuthenticationServiceException) {
                         message = e.getMessage();
                     } else if (e instanceof SessionAuthenticationException) {
+                        // 配置maxSessionsPreventsLogin()后，根据异常类型，可以在这里重定向到登录页面
                         message = e.getMessage();
+                        httpServletResponse.sendRedirect("/login?error=" + URLEncoder.encode("账号已经在其它设备登录！", "UTF-8"));
+                        return;
                     }
                     writeMessage(httpServletResponse, message);
                 })
@@ -171,7 +177,9 @@ public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
                 // 同时只能登录一个用户，新用户登录踢掉旧用户
                 .maximumSessions(1)
                 // 添加这个配置，会禁止新的登录，只保留第一个登录
-                .maxSessionsPreventsLogin(true);
+                .maxSessionsPreventsLogin(true)
+                // 设置踢掉旧用户后，旧用户再次访问服务器，会跳转到登录页面
+                .expiredUrl("/login?error=" + URLEncoder.encode("账号已经在其它设备登录！", "UTF-8"));
     }
 
     /**

@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>xxx系统</title>
@@ -13,6 +13,7 @@
 
 <div class="materialContainer">
     <div class="box">
+        <span th:text="${error}"></span>
         <div class="title">系统登录</div>
         <form action="/do_login" method="post">
             <div class="input">
