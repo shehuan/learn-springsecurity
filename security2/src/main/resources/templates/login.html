@@ -33,6 +33,8 @@
             </div>
             <img src="/verify_code" style="float: right; margin-top: 2px">
             <span>记住我：<input type="checkbox" name="remember-me"></span>
+            <!--防止CSRF，前后端不分离的配置方式-->
+            <input type="hidden" th:value="${_csrf.token}" th:name="${_csrf.parameterName}">
             <div class="button login">
                 <button type="submit">
                     <span>登录</span>

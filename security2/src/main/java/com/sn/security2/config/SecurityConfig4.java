@@ -171,7 +171,7 @@ public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
                 .tokenValiditySeconds(10 * 60)
                 .and()
                 // 关闭csrf
-                .csrf().disable()
+//                .csrf().disable()
                 // session 管理，注意，需要重写UserDetails实现类的equals()方法，否则无法实现预期的功能
                 .sessionManagement()
                 // 同时只能登录一个用户，新用户登录踢掉旧用户
