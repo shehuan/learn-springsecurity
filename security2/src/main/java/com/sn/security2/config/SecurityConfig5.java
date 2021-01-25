@@ -1,6 +1,9 @@
 package com.sn.security2.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sn.security2.config.authority.MyAccessDecisionManager;
+import com.sn.security2.config.authority.MyAccessDeniedHandler;
+import com.sn.security2.config.authority.MyFilterInvocationSecurityMetadataSource;
 import com.sn.security2.config.code.MyAuthenticationProvider;
 import com.sn.security2.config.code.MyWebAuthenticationDetailsSource;
 import com.sn.security2.service.MyBatisTokenRepositoryImpl;
@@ -11,12 +14,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.*;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -28,10 +33,10 @@ import java.net.URLEncoder;
 import java.util.Arrays;
 
 /**
- * 主要内容是，Spring Security session 管理，限制账号的登录数
+ * 主要内容是，Spring Security 动态权限
  */
-//@Configuration
-public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
+@Configuration
+public class SecurityConfig5 extends WebSecurityConfigurerAdapter {
     @Autowired
     UserService userService;
 
@@ -44,6 +49,15 @@ public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
     @Autowired
     MyBatisTokenRepositoryImpl myBatisTokenRepositoryImpl;
 
+    // 动态权限相关
+    @Autowired
+    MyFilterInvocationSecurityMetadataSource myFilterInvocationSecurityMetadataSource;
+    @Autowired
+    MyAccessDecisionManager myAccessDecisionManager;
+    @Autowired
+    MyAccessDeniedHandler myAccessDeniedHandler;
+
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -53,17 +67,6 @@ public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
     public AuthenticationManager authenticationManager() {
         ProviderManager providerManager = new ProviderManager(Arrays.asList(myAuthenticationProvider()));
         return providerManager;
-    }
-
-    /**
-     * 角色继承
-     */
-    @Bean
-    public RoleHierarchy roleHierarchy() {
-        RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-        // ROLE_admin角色继承了ROLE_user角色，这样就有了ROLE_user角色的所有权限
-        roleHierarchy.setHierarchy("ROLE_admin > ROLE_user");
-        return roleHierarchy;
     }
 
     @Override
@@ -88,19 +91,15 @@ public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                // 不拦截验证码接口
-                .antMatchers("/verify_code").permitAll()
-                // 为了给登录页面传参，展示错误信息，所以要配置这个
-                .antMatchers("/login").permitAll()
-                // 勾选了记住我则无法访问，必须是通过用户名密码登录的，如果使用rememberMe()则访问对应请求时必须勾选记住我
-                .antMatchers("/admin/**").fullyAuthenticated()
-                // 访问满足/admin/**格式的请求路径，则用户需要具备admin角色
-                .antMatchers("/admin/**").hasRole("admin")
-                // 访问满足/user/**格式的请求路径，则用户需要具备user角色
-                .antMatchers("/user/**").hasRole("user")
-                // anyRequest()代表其它的请求，需要出现在antMatchers()之后，
-                // 下边表示除了前面拦截规则之外的请求，其它的请求需要登录后才可以访问，当然访问拦截规则中的请求也是需要先登录后的
-                .anyRequest().authenticated()
+                // 配置动态权限
+                .withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
+                    @Override
+                    public <O extends FilterSecurityInterceptor> O postProcess(O object) {
+                        object.setAccessDecisionManager(myAccessDecisionManager);
+                        object.setSecurityMetadataSource(myFilterInvocationSecurityMetadataSource);
+                        return object;
+                    }
+                })
                 .and()
                 .formLogin()
                 .authenticationDetailsSource(myWebAuthenticationDetailsSource)
@@ -144,7 +143,7 @@ public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
 //                .logoutUrl("/logout")
                 // 设置退出登录的请求地址以及请求方式
                 // 开启防止CSRF攻击后，/logout接口必须是POST请求，这里改为GET请求
-                .logoutRequestMatcher(new AntPathRequestMatcher("/logout","GET"))
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
                 // 退出登录后的回调
                 .logoutSuccessHandler((httpServletRequest, httpServletResponse, authentication) -> {
                     writeMessage(httpServletResponse, "退出登录成功！");
@@ -152,6 +151,8 @@ public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .and()
                 .exceptionHandling()
+                // 访问接口时如果无权限的处理
+                .accessDeniedHandler(myAccessDeniedHandler)
                 // 访问接口时，如果未登录则给出提示，而不是跳转到登录页面
                 .authenticationEntryPoint((httpServletRequest, httpServletResponse, e) -> {
                     writeMessage(httpServletResponse, "尚未登录，请先登录！");
