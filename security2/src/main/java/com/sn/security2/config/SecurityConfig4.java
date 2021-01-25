@@ -19,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -91,12 +92,12 @@ public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
                 .antMatchers("/verify_code").permitAll()
                 // 为了给登录页面传参，展示错误信息，所以要配置这个
                 .antMatchers("/login").permitAll()
+                // 勾选了记住我则无法访问，必须是通过用户名密码登录的，如果使用rememberMe()则访问对应请求时必须勾选记住我
+                .antMatchers("/admin/**").fullyAuthenticated()
                 // 访问满足/admin/**格式的请求路径，则用户需要具备admin角色
                 .antMatchers("/admin/**").hasRole("admin")
                 // 访问满足/user/**格式的请求路径，则用户需要具备user角色
                 .antMatchers("/user/**").hasRole("user")
-                // 勾选了记住我则无法访问，必须是通过用户名密码登录的，如果使用rememberMe()则访问对应请求时必须勾选记住我
-                .antMatchers("/admin/**").fullyAuthenticated()
                 // anyRequest()代表其它的请求，需要出现在antMatchers()之后，
                 // 下边表示除了前面拦截规则之外的请求，其它的请求需要登录后才可以访问，当然访问拦截规则中的请求也是需要先登录后的
                 .anyRequest().authenticated()
@@ -140,9 +141,10 @@ public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
                 .and()
                 .logout()
                 // 设置退出登录的请求地址，GET请求，默认就是/logout，可以自定义一个GET请求的接口
-                .logoutUrl("/logout")
+//                .logoutUrl("/logout")
                 // 设置退出登录的请求地址以及请求方式
-//                .logoutRequestMatcher(new AntPathRequestMatcher("/logout","POST"))
+                // 开启防止CSRF攻击后，/logout接口必须是POST请求，这里改为GET请求
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout","GET"))
                 // 退出登录后的回调
                 .logoutSuccessHandler((httpServletRequest, httpServletResponse, authentication) -> {
                     writeMessage(httpServletResponse, "退出登录成功！");
