@@ -17,6 +17,8 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -24,10 +26,10 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 
 /**
- * 主要内容是，Spring Security remember me、token持久化
+ * 主要内容是，Spring Security session 管理，限制账号的登录数
  */
-//@Configuration
-public class SecurityConfig3 extends WebSecurityConfigurerAdapter {
+@Configuration
+public class SecurityConfig4 extends WebSecurityConfigurerAdapter {
     @Autowired
     UserService userService;
 
@@ -123,6 +125,8 @@ public class SecurityConfig3 extends WebSecurityConfigurerAdapter {
                         message = "密码过期！";
                     } else if (e instanceof AuthenticationServiceException) {
                         message = e.getMessage();
+                    } else if (e instanceof SessionAuthenticationException) {
+                        message = e.getMessage();
                     }
                     writeMessage(httpServletResponse, message);
                 })
@@ -161,7 +165,23 @@ public class SecurityConfig3 extends WebSecurityConfigurerAdapter {
                 .tokenValiditySeconds(10 * 60)
                 .and()
                 // 关闭csrf
-                .csrf().disable();
+                .csrf().disable()
+                // session 管理，注意，需要重写UserDetails实现类的equals()方法，否则无法实现预期的功能
+                .sessionManagement()
+                // 同时只能登录一个用户，新用户登录踢掉旧用户
+                .maximumSessions(1)
+                // 添加这个配置，会禁止新的登录，只保留第一个登录
+                .maxSessionsPreventsLogin(true);
+    }
+
+    /**
+     * 配合 maxSessionsPreventsLogin() 使用
+     * <p>
+     * 将 session 创建以及销毁的事件及时感知到，并且调用 Spring 中的事件机制将相关的创建和销毁事件发布出去，进而被 Spring Security 感知到
+     */
+    @Bean
+    HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 
     private void writeMessage(HttpServletResponse response, String message) throws IOException {

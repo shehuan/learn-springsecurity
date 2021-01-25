@@ -115,4 +115,19 @@ public class User implements UserDetails {
     public void setRoles(List<Role> roles) {
         this.roles = roles;
     }
+
+    @Override
+    public String toString() {
+        return this.username;
+    }
+
+    @Override
+    public int hashCode() {
+        return username.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this.toString().equals(obj.toString());
+    }
 }
