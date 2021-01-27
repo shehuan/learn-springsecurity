@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>xxx系统</title>
+
+    <link rel="stylesheet" href="css/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+<body>
+
+
+<div class="materialContainer">
+    <div class="box">
+        <span th:text="${error}"></span>
+        <div class="title">系统登录</div>
+        <form action="/do_login" method="post">
+            <div class="input">
+                <label for="name">用户名</label>
+                <input type="text" name="username" id="name">
+                <span class="spin"></span>
+            </div>
+            <div class="input">
+                <label for="pass">密码</label>
+                <input type="password" name="password" id="pass">
+                <span class="spin"></span>
+            </div>
+            <div class="input">
+                <label for="code">验证码</label>
+                <input type="text" name="verify_code" id="code">
+                <span class="spin"></span>
+            </div>
+            <img src="/verify_code" style="float: right; margin-top: 2px">
+            <span>记住我：<input type="checkbox" name="remember-me"></span>
+            <!--防止CSRF，前后端不分离的配置方式
+            默认情况下，GET、HEAD、TRACE 以及 OPTIONS 是不需要验证 CSRF 攻击的，POST才需要
+            -->
+            <input type="hidden" th:value="${_csrf.token}" th:name="${_csrf.parameterName}">
+            <div class="button login">
+                <button type="submit">
+                    <span>登录</span>
+                    <i class="fa fa-check"></i>
+                </button>
+            </div>
+        </form>
+        <a href="javascript:" class="pass-forgot">忘记密码？</a>
+    </div>
+
+    <div class="overbox">
+        <div class="material-button alt-2">
+            <span class="shape"></span>
+        </div>
+        <div class="title">系统注册</div>
+        <div class="input">
+            <label for="username">用户名</label>
+            <input type="text" name="username" id="username">
+            <span class="spin"></span>
+        </div>
+        <div class="input">
+            <label for="password">密码</label>
+            <input type="password" name="password" id="password">
+            <span class="spin"></span>
+        </div>
+        <div class="input">
+            <label for="repassword">确认密码</label>
+            <input type="password" name="repassword" id="repassword">
+            <span class="spin"></span>
+        </div>
+        <div class="button">
+            <button>
+                <span>注册</span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/index.js"></script>
+
+</body>
+</html>
