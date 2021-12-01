@@ -20,20 +20,26 @@ import java.util.Collection;
 public class MyAccessDecisionManager implements AccessDecisionManager {
     @Override
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) throws AccessDeniedException, InsufficientAuthenticationException {
-        // 当前用户具有的角色
+        // configAttributes是MyFilterInvocationSecurityMetadataSource中getAttributes()方法的返回值，即需要的角色
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 
         //configAttributes是MyFilterInvocationSecurityMetadataSource中getAttributes()方法的返回值
         for (ConfigAttribute ca : configAttributes) {
+            String needRole = ca.getAttribute();
             // 如果是MyFilterInvocationSecurityMetadataSource中返回的标记
-            if ("ROLE_LOGIN".equals(ca.getAttribute())) {
-                // 是匿名用户
+            if ("ROLE_LOGIN".equals(needRole)) {
+                // 是匿名用户，还没登录
                 if (authentication instanceof AnonymousAuthenticationToken) {
-                    throw new BadCredentialsException("尚未登录");
+                    throw new BadCredentialsException("尚未登录，请登录！");
                 } else {
                     // 已经登录，则直接结束循环，放行
                     return;
                 }
+            }
+
+            // 请求的地址未分配角色
+            if ("NO_PERMISSION".equals(needRole)) {
+                throw new AccessDeniedException("权限不足，请联系管理员！");
             }
 
             // 将当前用户具有的角色和访问路径需要的角色比对
@@ -44,7 +50,7 @@ public class MyAccessDecisionManager implements AccessDecisionManager {
                 }
             }
         }
-        throw new AccessDeniedException("权限不足");
+        throw new AccessDeniedException("权限不足，请联系管理员！");
     }
 
     @Override

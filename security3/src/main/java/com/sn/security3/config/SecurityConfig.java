@@ -67,6 +67,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return providerManager;
     }
 
+    /**
+     * 在这里可以配置那些不需要登录就可以访问的接口
+     *
+     * @param web
+     * @throws Exception
+     */
     @Override
     public void configure(WebSecurity web) throws Exception {
         // 不拦截静态资源

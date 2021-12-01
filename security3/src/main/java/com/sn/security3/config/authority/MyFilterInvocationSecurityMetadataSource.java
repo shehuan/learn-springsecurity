@@ -29,10 +29,10 @@ public class MyFilterInvocationSecurityMetadataSource implements FilterInvocatio
     public Collection<ConfigAttribute> getAttributes(Object object) throws IllegalArgumentException {
         // 请求的地址
         String requestUrl = ((FilterInvocation) object).getRequestUrl();
-        if (antPathMatcher.match("/login*", requestUrl) || "/verify_code".equals(requestUrl)) {
-            // 返回null表示当前请求不需要任何角色都能访问
-            return null;
-        }
+//        if (antPathMatcher.match("/login*", requestUrl) || "/verify_code".equals(requestUrl)) {
+//            // 返回null表示当前请求不需要任何角色都能访问
+//            return null;
+//        }
         // 这一步可以使用Redis缓存
         List<Menu> menus = menuDao.findAllMenus();
         for (Menu menu : menus) {
@@ -48,6 +48,12 @@ public class MyFilterInvocationSecurityMetadataSource implements FilterInvocatio
                 return SecurityConfig.createList(roleNames);
             }
         }
+
+        // 该请求地址未分配到角色，也未定义在公共接口里，则即使登录了也无权访问
+        if (!antPathMatcher.match("/common/**", requestUrl)) {
+            return SecurityConfig.createList("NO_PERMISSION");
+        }
+
         // 如果前边未匹配到路径，则做如下返回，相当于一个标记，后续会根据这个标记让用户登录后才可以访问资源
         return SecurityConfig.createList("ROLE_LOGIN");
     }
