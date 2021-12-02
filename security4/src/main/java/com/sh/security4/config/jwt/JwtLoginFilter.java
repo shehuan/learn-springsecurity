@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sh.security4.bean.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -67,9 +69,9 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter  {
             sb.append(authority.getAuthority()).append(",");
         }
         String jwtToken = Jwts.builder()
-                .claim("authorities", sb) // 角色
+//                .claim("authorities", sb) // 角色
                 .setSubject(authResult.getName()) // 用户名
-                .setExpiration(new Date(System.currentTimeMillis() + 5 * 60 * 1000)) // token 过期时间
+                .setExpiration(new Date(System.currentTimeMillis() + 2 * 60 * 1000)) // token 过期时间
                 .signWith(SignatureAlgorithm.HS512, "shehuan") // 加密算法、密钥
                 .compact();
         // 将生成的 token 返回给客户端

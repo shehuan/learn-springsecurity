@@ -39,6 +39,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     MyAccessDeniedHandler myAccessDeniedHandler;
 
+    @Autowired
+    JwtFilter jwtFilter;
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -89,7 +92,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()// 关闭csrf
                 .sessionManagement().disable() // 禁用session
                 .addFilterBefore(new JwtLoginFilter("/login", authenticationManagerBean()), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new JwtFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 // 退出登录
                 .logout()
                 // 设置退出登录的请求地址，GET请求，默认就是/logout，可以自定义一个GET请求的接口
