@@ -1,19 +1,13 @@
 package com.sh.security4.config.jwt;
 
 import com.sh.security4.service.UserService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureException;
+import com.sh.security4.utils.JwtTokenUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,54 +17,41 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 /**
- * description：
- * time：2021/12/1 14:30
+ * 该 filter 不会拦截登录请求、以及不需要登录就能访问的请求，
+ * 拦截到请求后，会校验 token，进而解析出用户信息，将用户信息交给 Spring Security 做进一步处理
  */
 @Component
-public class JwtFilter extends OncePerRequestFilter {
+public class JwtTokenAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger("JwtTokenUtils");
 
     @Autowired
     UserService userService;
 
-    /**
-     * 校验 token
-     *
-     * @param request
-     * @param response
-     * @param filterChain
-     * @throws IOException
-     * @throws ServletException
-     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // 从请求头取出 token
         String jwtToken = request.getHeader("token");
-        try {
-            // 校验、解析 token
-            Claims claims = Jwts.parser().setSigningKey("shehuan").parseClaimsJws(jwtToken).getBody();
-            // 用户名
-            String username = claims.getSubject();
-            if (StringUtils.hasText(username)) {
+
+        logger.info("token===>{}", jwtToken);
+
+        if (StringUtils.hasText(jwtToken)) {
+            // 解析 token，获取用户名
+            String username = JwtTokenUtils.getUsername(jwtToken);
+            if (username != null) {
                 // 根据用户名查询用户信息
                 UserDetails userDetails = userService.loadUserByUsername(username);
-//                // 用户的角色
-//                List<GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList((String) claims.get("authorities"));
-                // 校验用户信息
+                // 设置用户认证信息
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
-        } catch (ExpiredJwtException e) {
-            System.out.println("token 过期！");
-        } catch (SignatureException e) {
-            System.out.println("token 格式错误！");
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
+        // 放行请求，继续由权限管理模块处理
+        // 如果 token 校验、解析失败，可以直接放行请求，此时权限管理模块会将当前发起请求的用户当做匿名用户来处理
+        // 也可以在此直接返回响应结果，告诉客户端 token 无效
         filterChain.doFilter(request, response);
     }
 }

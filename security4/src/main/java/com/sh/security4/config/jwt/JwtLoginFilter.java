@@ -1,32 +1,26 @@
 package com.sh.security4.config.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sh.security4.bean.Response;
 import com.sh.security4.bean.User;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Value;
+import com.sh.security4.utils.JwtTokenUtils;
+import com.sh.security4.utils.ResponseUtils;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.stereotype.Component;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.Date;
 
 /**
- * description：
- * time：2021/12/1 14:09
+ * description：用户登录信息校验、生成 token
  */
-public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter  {
+public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
     public JwtLoginFilter(String defaultFilterProcessesUrl, AuthenticationManager authenticationManager) {
         super(new AntPathRequestMatcher(defaultFilterProcessesUrl, "POST"));
         setAuthenticationManager(authenticationManager);
@@ -63,19 +57,11 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter  {
      */
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        Collection<? extends GrantedAuthority> authorities = authResult.getAuthorities();
-        StringBuilder sb = new StringBuilder();
-        for (GrantedAuthority authority : authorities) {
-            sb.append(authority.getAuthority()).append(",");
-        }
-        String jwtToken = Jwts.builder()
-//                .claim("authorities", sb) // 角色
-                .setSubject(authResult.getName()) // 用户名
-                .setExpiration(new Date(System.currentTimeMillis() + 2 * 60 * 1000)) // token 过期时间
-                .signWith(SignatureAlgorithm.HS512, "shehuan") // 加密算法、密钥
-                .compact();
+        // 创建 token
+        String jwtToken = JwtTokenUtils.createToken(authResult.getName());
         // 将生成的 token 返回给客户端
-        writeMessage(response, jwtToken);
+        Response<String> resp = Response.success(jwtToken, "登录成功！");
+        ResponseUtils.write(response, resp);
     }
 
     /**
@@ -103,14 +89,7 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter  {
         } else if (e instanceof AuthenticationServiceException) {
             message = e.getMessage();
         }
-        writeMessage(response, message);
-    }
-
-    private void writeMessage(HttpServletResponse response, String message) throws IOException {
-        response.setContentType("application/json;charset=utf-8");
-        PrintWriter out = response.getWriter();
-        out.write(message);
-        out.flush();
-        out.close();
+        Response<String> resp = Response.error(message);
+        ResponseUtils.write(response, resp);
     }
 }
