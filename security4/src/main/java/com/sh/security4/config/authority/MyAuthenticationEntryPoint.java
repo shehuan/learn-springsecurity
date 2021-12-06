@@ -18,7 +18,7 @@ import java.io.IOException;
 public class MyAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        Response<Void> resp = Response.error("token 无效，请重新登录！");
+        Response<Void> resp = Response.error(401, "token 无效，请重新登录！");
         ResponseUtils.write(response, resp);
     }
 }

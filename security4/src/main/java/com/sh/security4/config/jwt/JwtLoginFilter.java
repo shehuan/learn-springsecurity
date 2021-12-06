@@ -89,7 +89,7 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
         } else if (e instanceof AuthenticationServiceException) {
             message = e.getMessage();
         }
-        Response<String> resp = Response.error(message);
+        Response<String> resp = Response.error(401, message);
         ResponseUtils.write(response, resp);
     }
 }
