@@ -1,5 +1,6 @@
 package com.sh.security4.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sh.security4.config.authority.*;
 import com.sh.security4.config.jwt.JwtTokenAuthenticationFilter;
 import com.sh.security4.config.jwt.JwtLoginFilter;
@@ -7,6 +8,7 @@ import com.sh.security4.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,6 +18,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
+
+import java.net.URLEncoder;
 
 /**
  * 主要内容是，Spring Security 动态权限

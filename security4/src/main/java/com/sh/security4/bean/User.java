@@ -5,10 +5,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Alias("user")
 public class User implements UserDetails {
@@ -31,6 +28,9 @@ public class User implements UserDetails {
 
     // 账号是否可用
     private boolean enabled;
+
+    // jwt 密钥，修改密码、退出登录时重置，用 uuid 赋值
+    private String secretKey;
 
     // 用户的角色
     private List<Role> roles;
@@ -107,6 +107,14 @@ public class User implements UserDetails {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
     }
 
     public List<Role> getRoles() {
