@@ -39,6 +39,20 @@ public class JwtTokenUtils {
     }
 
     /**
+     * 根据指定密钥创建 token
+     * @param username
+     * @param secretKey
+     * @return
+     */
+    public static String createToken(String username, String secretKey) {
+        return Jwts.builder()
+                .setSubject(username) // 用户名
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION)) // token 失效时间
+                .signWith(SignatureAlgorithm.HS512, secretKey) // 加密算法、密钥
+                .compact();
+    }
+
+    /**
      * 解析 token
      *
      * @param jwtToken
@@ -51,7 +65,21 @@ public class JwtTokenUtils {
         } catch (ExpiredJwtException e) {
             logger.error("token 过期！");
         } catch (SignatureException e) {
-            logger.error("token 格式错误！");
+            logger.error("token 签名错误！");
+        } catch (Exception e) {
+            logger.error(e.toString());
+        }
+        return claims;
+    }
+
+    public static Claims parseToken(String jwtToken, String secretKey) {
+        Claims claims = null;
+        try {
+            claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(jwtToken).getBody();
+        } catch (ExpiredJwtException e) {
+            logger.error("token 过期！");
+        } catch (SignatureException e) {
+            logger.error("token 签名错误！");
         } catch (Exception e) {
             logger.error(e.toString());
         }
@@ -67,6 +95,15 @@ public class JwtTokenUtils {
     public static String getUsername(String jwtToken) {
         String username = null;
         Claims claims = parseToken(jwtToken);
+        if (claims != null) {
+            username = parseToken(jwtToken).getSubject();
+        }
+        return username;
+    }
+
+    public static String getUsername(String jwtToken, String secretKey) {
+        String username = null;
+        Claims claims = parseToken(jwtToken, secretKey);
         if (claims != null) {
             username = parseToken(jwtToken).getSubject();
         }

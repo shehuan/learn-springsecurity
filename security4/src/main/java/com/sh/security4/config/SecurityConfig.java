@@ -2,8 +2,10 @@ package com.sh.security4.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sh.security4.config.authority.*;
+import com.sh.security4.config.jwt.JwtLoginFilter2;
 import com.sh.security4.config.jwt.JwtTokenAuthenticationFilter;
 import com.sh.security4.config.jwt.JwtLoginFilter;
+import com.sh.security4.config.jwt.JwtTokenAuthenticationFilter2;
 import com.sh.security4.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -45,8 +47,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     MyAuthenticationEntryPoint myAuthenticationEntryPoint;
 
     @Autowired
-    JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
+    JwtTokenAuthenticationFilter2 jwtTokenAuthenticationFilter2;
 
+    @Bean
+    JwtLoginFilter2 jwtLoginFilter2() throws Exception {
+        return new JwtLoginFilter2(authenticationManagerBean(), userService);
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -95,8 +101,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf().disable()// 关闭csrf
                 .sessionManagement().disable() // 禁用session
-                .addFilterBefore(new JwtLoginFilter("/login", authenticationManagerBean()), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtTokenAuthenticationFilter2, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(jwtLoginFilter2(), UsernamePasswordAuthenticationFilter.class)
                 // 退出登录
                 .logout()
                 // 设置退出登录的请求地址，GET请求，默认就是/logout，也可以自定义一个GET请求的接口
