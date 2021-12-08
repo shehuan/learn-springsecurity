@@ -1,16 +1,18 @@
 package com.sh.security4.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sh.security4.config.authority.*;
-import com.sh.security4.config.jwt.JwtLoginFilter2;
-import com.sh.security4.config.jwt.JwtTokenAuthenticationFilter;
-import com.sh.security4.config.jwt.JwtLoginFilter;
-import com.sh.security4.config.jwt.JwtTokenAuthenticationFilter2;
+import com.sh.security4.config.filter.LoginFilter2;
+import com.sh.security4.config.handler.exception.MyAccessDeniedHandler;
+import com.sh.security4.config.handler.exception.MyAuthenticationEntryPoint;
+import com.sh.security4.config.handler.login.MyAuthenticationFailureHandler;
+import com.sh.security4.config.handler.login.MyAuthenticationSuccessHandler;
+import com.sh.security4.config.handler.logout.MyLogoutSuccessHandler;
+import com.sh.security4.config.filter.LoginFilter;
+import com.sh.security4.config.filter.TokenAuthenticationFilter;
 import com.sh.security4.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,9 +22,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.session.SessionAuthenticationException;
-
-import java.net.URLEncoder;
 
 /**
  * 主要内容是，Spring Security 动态权限
@@ -47,11 +46,28 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     MyAuthenticationEntryPoint myAuthenticationEntryPoint;
 
     @Autowired
-    JwtTokenAuthenticationFilter2 jwtTokenAuthenticationFilter2;
+    TokenAuthenticationFilter tokenAuthenticationFilter;
+
+    @Autowired
+    MyAuthenticationSuccessHandler myAuthenticationSuccessHandler;
+
+    @Autowired
+    MyAuthenticationFailureHandler myAuthenticationFailureHandler;
 
     @Bean
-    JwtLoginFilter2 jwtLoginFilter2() throws Exception {
-        return new JwtLoginFilter2(authenticationManagerBean(), userService);
+    LoginFilter loginFilter() throws Exception {
+        LoginFilter loginFilter = new LoginFilter();
+        loginFilter.setAuthenticationManager(authenticationManagerBean());
+        loginFilter.setAuthenticationSuccessHandler(myAuthenticationSuccessHandler);
+        loginFilter.setAuthenticationFailureHandler(myAuthenticationFailureHandler);
+        return loginFilter;
+    }
+
+    @Bean
+    LoginFilter2 loginFilter2() throws Exception {
+        LoginFilter2 loginFilter2 = new LoginFilter2("/login", authenticationManagerBean());
+        loginFilter2.setUserService(userService);
+        return loginFilter2;
     }
 
     @Bean
@@ -101,8 +117,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf().disable()// 关闭csrf
                 .sessionManagement().disable() // 禁用session
-                .addFilterBefore(jwtTokenAuthenticationFilter2, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAt(jwtLoginFilter2(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(loginFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 // 退出登录
                 .logout()
                 // 设置退出登录的请求地址，GET请求，默认就是/logout，也可以自定义一个GET请求的接口

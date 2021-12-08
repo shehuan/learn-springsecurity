@@ -1,4 +1,4 @@
-package com.sh.security4.config.authority;
+package com.sh.security4.config.handler.exception;
 
 import com.sh.security4.bean.Response;
 import com.sh.security4.utils.ResponseUtils;
@@ -19,7 +19,7 @@ public class MyAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        Response<Void> resp = Response.error(403, "权限不足，请联系管理员！");
+        Response<Void> resp = Response.error(403, accessDeniedException.getMessage());
         ResponseUtils.write(response, resp);
     }
 }

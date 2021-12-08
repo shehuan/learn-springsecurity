@@ -22,9 +22,9 @@ public class MyAccessDecisionManager implements AccessDecisionManager {
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) throws AccessDeniedException, InsufficientAuthenticationException {
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 
-        // 匿名用户，未登录
+        // 未登录的匿名用户、token 校验不通过
         if (authentication instanceof AnonymousAuthenticationToken) {
-            throw new BadCredentialsException("token 无效！");
+            throw new BadCredentialsException("token 无效，请重新登录！");
         }
 
         // configAttributes是MyFilterInvocationSecurityMetadataSource中getAttributes()方法的返回值

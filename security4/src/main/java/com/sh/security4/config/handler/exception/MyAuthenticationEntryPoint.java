@@ -1,4 +1,4 @@
-package com.sh.security4.config.authority;
+package com.sh.security4.config.handler.exception;
 
 import com.sh.security4.bean.Response;
 import com.sh.security4.utils.ResponseUtils;
@@ -12,13 +12,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * token 校验不通过的处理
+ * 未登录的匿名用户、token 校验不通过的处理
  */
 @Component
 public class MyAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        Response<Void> resp = Response.error(401, "token 无效，请重新登录！");
+        Response<Void> resp = Response.error(401, authException.getMessage());
         ResponseUtils.write(response, resp);
     }
 }

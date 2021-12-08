@@ -33,6 +33,7 @@ public class UserService implements UserDetailsService {
         String username = SecurityUtils.getUsername();
         userDao.updatePassword(username, SecurityUtils.encodePassword(password));
         userDao.updateSecretKey(username, JwtTokenUtils.generateSecretKey());
+        SecurityUtils.setAuthentication(null);
     }
 
     public void updateSecretKey(String username) {

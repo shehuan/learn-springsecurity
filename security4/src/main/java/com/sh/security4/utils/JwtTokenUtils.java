@@ -18,28 +18,12 @@ import java.util.UUID;
 public class JwtTokenUtils {
     private static final Logger logger = LoggerFactory.getLogger("JwtTokenUtils");
 
-    // 密钥
-    private static final String SECRET_KEY = "shehuan";
     // token 失效时间
     private static final Long EXPIRATION = 2 * 60 * 1000L;
 
     /**
      * 创建 token
      *
-     * @param username
-     * @return
-     */
-    public static String createToken(String username) {
-        return Jwts.builder()
-                .setSubject(username) // 用户名
-                .setIssuedAt(new Date()) // token 生成时间
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION)) // token 失效时间
-                .signWith(SignatureAlgorithm.HS512, SECRET_KEY) // 加密算法、密钥
-                .compact();
-    }
-
-    /**
-     * 根据指定密钥创建 token
      * @param username
      * @param secretKey
      * @return
@@ -56,22 +40,9 @@ public class JwtTokenUtils {
      * 解析 token
      *
      * @param jwtToken
+     * @param secretKey
      * @return
      */
-    public static Claims parseToken(String jwtToken) {
-        Claims claims = null;
-        try {
-            claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(jwtToken).getBody();
-        } catch (ExpiredJwtException e) {
-            logger.error("token 过期！");
-        } catch (SignatureException e) {
-            logger.error("token 签名错误！");
-        } catch (Exception e) {
-            logger.error(e.toString());
-        }
-        return claims;
-    }
-
     public static Claims parseToken(String jwtToken, String secretKey) {
         Claims claims = null;
         try {
@@ -90,22 +61,14 @@ public class JwtTokenUtils {
      * 获取用户名
      *
      * @param jwtToken
+     * @param secretKey
      * @return
      */
-    public static String getUsername(String jwtToken) {
-        String username = null;
-        Claims claims = parseToken(jwtToken);
-        if (claims != null) {
-            username = parseToken(jwtToken).getSubject();
-        }
-        return username;
-    }
-
     public static String getUsername(String jwtToken, String secretKey) {
         String username = null;
         Claims claims = parseToken(jwtToken, secretKey);
         if (claims != null) {
-            username = parseToken(jwtToken).getSubject();
+            username = claims.getSubject();
         }
         return username;
     }
@@ -133,11 +96,11 @@ public class JwtTokenUtils {
      * @param jwtToken
      * @return
      */
-    public static Date getIssuedAt(String jwtToken) {
+    public static Date getIssuedAt(String jwtToken, String secretKey) {
         Date issuedAt = null;
-        Claims claims = parseToken(jwtToken);
+        Claims claims = parseToken(jwtToken, secretKey);
         if (claims != null) {
-            issuedAt = parseToken(jwtToken).getIssuedAt();
+            issuedAt = claims.getIssuedAt();
         }
         return issuedAt;
     }
@@ -148,15 +111,20 @@ public class JwtTokenUtils {
      * @param jwtToken
      * @return
      */
-    public boolean isExpire(String jwtToken) {
+    public boolean isExpire(String jwtToken, String secretKey) {
         boolean isExpire = true;
-        Claims claims = parseToken(jwtToken);
+        Claims claims = parseToken(jwtToken, secretKey);
         if (claims != null) {
             isExpire = claims.getExpiration().before(new Date());
         }
         return isExpire;
     }
 
+    /**
+     * 生成密钥
+     *
+     * @return
+     */
     public static String generateSecretKey() {
         return UUID.randomUUID().toString().replace("-", "");
     }
