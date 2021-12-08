@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * description：简单版的 UsernamePasswordAuthenticationFilter
+ * 简单版的 UsernamePasswordAuthenticationFilter
  * 用户登录信息校验、生成 token
  */
 public class LoginFilter2 extends AbstractAuthenticationProcessingFilter {

@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * description：支持用 json 格式提交用户名、密码
+ * 支持用 json 格式提交用户名、密码
  */
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
