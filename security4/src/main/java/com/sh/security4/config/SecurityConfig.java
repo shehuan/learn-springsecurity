@@ -117,7 +117,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf().disable()// 关闭csrf
                 .sessionManagement().disable() // 禁用session
-                .addFilterAt(loginFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(loginFilter2(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 // 退出登录
                 .logout()

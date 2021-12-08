@@ -3,6 +3,7 @@ package com.sh.security4.config.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sh.security4.bean.Response;
 import com.sh.security4.bean.User;
+import com.sh.security4.config.exception.VerificationCodeErrorException;
 import com.sh.security4.service.UserService;
 import com.sh.security4.utils.JwtTokenUtils;
 import com.sh.security4.utils.ResponseUtils;
@@ -30,6 +31,8 @@ public class LoginFilter2 extends AbstractAuthenticationProcessingFilter {
 
     public static final String PASSWORD_KEY = "password";
 
+    public static final String CODE_KEY = "code";
+
     private UserService userService;
 
     public LoginFilter2(String defaultFilterProcessesUrl, AuthenticationManager authenticationManager) {
@@ -49,29 +52,38 @@ public class LoginFilter2 extends AbstractAuthenticationProcessingFilter {
      * @return
      * @throws AuthenticationException
      * @throws IOException
-     * @throws ServletException
      */
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException {
         if (!request.getMethod().equals("POST")) {
             throw new AuthenticationServiceException("Authentication method not supported: " + request.getMethod());
         }
 
         String username = null;
         String password = null;
+        String code = null;
         // 如果登录时以JSON格式传递数据
         if (request.getContentType().equals(MediaType.APPLICATION_JSON_VALUE)) {
             try {
                 Map<String, String> map = new ObjectMapper().readValue(request.getInputStream(), Map.class);
                 username = map.get(USERNAME_KEY);
                 password = map.get(PASSWORD_KEY);
+                code = map.get(CODE_KEY);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else {
+        } else { // 表单格式传递数据
             username = request.getParameter(USERNAME_KEY);
             password = request.getParameter(PASSWORD_KEY);
+            code = request.getParameter(CODE_KEY);
         }
+        code = (code != null) ? code : "";
+        // 检查验证码是否正确
+        if (!"1024".equals(code)) {
+            unsuccessfulAuthentication(request, response, new VerificationCodeErrorException("验证码错误！"));
+            return null;
+        }
+
         username = (username != null) ? username : "";
         username = username.trim();
         password = (password != null) ? password : "";
@@ -87,7 +99,6 @@ public class LoginFilter2 extends AbstractAuthenticationProcessingFilter {
      * @param chain
      * @param authResult
      * @throws IOException
-     * @throws ServletException
      */
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException {
@@ -110,11 +121,10 @@ public class LoginFilter2 extends AbstractAuthenticationProcessingFilter {
      * @param response
      * @param e
      * @throws IOException
-     * @throws ServletException
      */
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) throws IOException {
-        String message = "登录失败，请稍后再试！";
+        String message;
         if (e instanceof BadCredentialsException) {
             message = "用户名或者密码错误，请重新输入！";
         } else if (e instanceof DisabledException) {
@@ -125,8 +135,10 @@ public class LoginFilter2 extends AbstractAuthenticationProcessingFilter {
             message = "账号过期！";
         } else if (e instanceof CredentialsExpiredException) {
             message = "密码过期！";
-        } else if (e instanceof AuthenticationServiceException) {
+        } else if (e instanceof VerificationCodeErrorException) {
             message = e.getMessage();
+        } else {
+            message = "登录失败，请稍后再试！";
         }
         Response<String> resp = Response.error(401, message);
         ResponseUtils.write(response, resp);

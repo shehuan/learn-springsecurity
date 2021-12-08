@@ -34,15 +34,10 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if (username == null) {
-                username = "";
-            }
-
-            if (password == null) {
-                password = "";
-            }
-
+            username = (username != null) ? username : "";
             username = username.trim();
+            password = (password != null) ? password : "";
+
             UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(username, password);
             setDetails(request, authRequest);
             return getAuthenticationManager().authenticate(authRequest);

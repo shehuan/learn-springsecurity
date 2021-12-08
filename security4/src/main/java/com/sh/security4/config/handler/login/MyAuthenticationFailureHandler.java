@@ -20,7 +20,7 @@ import java.io.IOException;
 public class MyAuthenticationFailureHandler implements AuthenticationFailureHandler {
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) throws IOException, ServletException {
-        String message = "登录失败，请稍后再试！";
+        String message;
         if (e instanceof BadCredentialsException) {
             message = "用户名或者密码错误，请重新输入！";
         } else if (e instanceof DisabledException) {
@@ -31,8 +31,8 @@ public class MyAuthenticationFailureHandler implements AuthenticationFailureHand
             message = "账号过期！";
         } else if (e instanceof CredentialsExpiredException) {
             message = "密码过期！";
-        } else if (e instanceof AuthenticationServiceException) {
-            message = e.getMessage();
+        } else {
+            message = "登录失败，请稍后再试！";
         }
         Response<String> resp = Response.error(401, message);
         ResponseUtils.write(response, resp);
