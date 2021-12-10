@@ -32,19 +32,17 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 从请求头取出 token
-        String jwtToken = request.getHeader("token");
-
-        logger.info("token===>{}", jwtToken);
-
-        if (StringUtils.hasText(jwtToken)) {
+        // 从请求头取出 assessToken
+        String accessToken = request.getHeader("assessToken");
+        logger.info("accessToken===>{}", accessToken);
+        if (StringUtils.hasText(accessToken)) {
             // 解析 token，直接获取用户名
-            String username = JwtTokenUtils.getUsernameFromPayload(jwtToken);
+            String username = JwtTokenUtils.getUsernameFromPayload(accessToken);
             if (username != null) {
                 // 根据用户名查询用户信息
                 User user = (User) userService.loadUserByUsername(username);
                 // 校验 token
-                Claims claims = JwtTokenUtils.parseToken(jwtToken, user.getSecretKey());
+                Claims claims = JwtTokenUtils.parseToken(accessToken, user.getSecretKey());
                 if (claims != null) {
                     // 设置用户认证信息
                     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), null, user.getAuthorities());

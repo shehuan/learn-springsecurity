@@ -18,20 +18,39 @@ import java.util.UUID;
 public class JwtTokenUtils {
     private static final Logger logger = LoggerFactory.getLogger("JwtTokenUtils");
 
-    // token 失效时间
-    private static final Long EXPIRATION = 2 * 60 * 1000L;
+    // access token 失效时间
+    private static final Long ACCESS_EXPIRATION = 2 * 60 * 1000L;
+    // refresh token 失效时间
+    private static final Long REFRESH_EXPIRATION = 10 * 60 * 1000L;
 
     /**
-     * 创建 token
+     * 创建 access token
      *
      * @param username
      * @param secretKey
      * @return
      */
-    public static String createToken(String username, String secretKey) {
+    public static String createAccessToken(String username, String secretKey) {
         return Jwts.builder()
                 .setSubject(username) // 用户名
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION)) // token 失效时间
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_EXPIRATION)) // token 失效时间
+                .signWith(SignatureAlgorithm.HS512, secretKey) // 加密算法、密钥
+                .compact();
+    }
+
+    /**
+     * 创建 refresh token
+     *
+     * @param secretKey
+     * @return
+     */
+    public static String createRefreshToken(String username, String secretKey) {
+        return Jwts.builder()
+                .setSubject(username) // 用户名
+                .setAudience("refresh")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_EXPIRATION)) // token 失效时间
                 .signWith(SignatureAlgorithm.HS512, secretKey) // 加密算法、密钥
                 .compact();
     }

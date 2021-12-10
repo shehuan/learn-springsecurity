@@ -10,6 +10,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.Map;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -39,4 +42,12 @@ public class UserService implements UserDetailsService {
     public void updateSecretKey(String username) {
         userDao.updateSecretKey(username, JwtTokenUtils.generateSecretKey());
     }
+
+//    public Map<String, String> tokenRefresh(String refreshToken) {
+//        String username = JwtTokenUtils.getUsernameFromPayload(refreshToken);
+//        if (!StringUtils.hasText(username)) {
+//            return null;
+//        }
+//
+//    }
 }

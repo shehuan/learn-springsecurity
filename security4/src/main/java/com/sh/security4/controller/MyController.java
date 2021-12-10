@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping()
 public class MyController {
@@ -34,5 +36,10 @@ public class MyController {
     public Response<Void> changePassword(String password) {
         userService.changePassword(password);
         return Response.success("修改成功！");
+    }
+
+    @GetMapping("/token/refresh")
+    public Response<Map<String, String>> tokenRefresh(String refreshToken) {
+        return Response.success();
     }
 }
