@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,7 +22,7 @@ public class JwtTokenUtils {
     // access token 失效时间
     private static final Long ACCESS_EXPIRATION = 2 * 60 * 1000L;
     // refresh token 失效时间
-    private static final Long REFRESH_EXPIRATION = 10 * 60 * 1000L;
+    private static final Long REFRESH_EXPIRATION = 5 * 60 * 1000L;
 
     /**
      * 创建 access token
@@ -56,16 +57,45 @@ public class JwtTokenUtils {
     }
 
     /**
-     * 解析 token
+     * 解析 access token
      *
-     * @param jwtToken
+     * @param token
      * @param secretKey
      * @return
      */
-    public static Claims parseToken(String jwtToken, String secretKey) {
+    public static Claims parseAccessToken(String token, String secretKey) {
         Claims claims = null;
         try {
-            claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(jwtToken).getBody();
+            claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+            // 如果用 refresh token 冒充 access token
+            if ("refresh".equals(claims.getAudience())) {
+                return null;
+            }
+        } catch (ExpiredJwtException e) {
+            logger.error("token 过期！");
+        } catch (SignatureException e) {
+            logger.error("token 签名错误！");
+        } catch (Exception e) {
+            logger.error(e.toString());
+        }
+        return claims;
+    }
+
+    /**
+     * 解析 refresh token
+     *
+     * @param token
+     * @param secretKey
+     * @return
+     */
+    public static Claims parseRefreshToken(String token, String secretKey) {
+        Claims claims = null;
+        try {
+            claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+            // 如果不是 refresh token
+            if (!"refresh".equals(claims.getAudience())) {
+                return null;
+            }
         } catch (ExpiredJwtException e) {
             logger.error("token 过期！");
         } catch (SignatureException e) {
@@ -79,13 +109,13 @@ public class JwtTokenUtils {
     /**
      * 获取用户名
      *
-     * @param jwtToken
+     * @param token
      * @param secretKey
      * @return
      */
-    public static String getUsername(String jwtToken, String secretKey) {
+    public static String getUsername(String token, String secretKey) {
         String username = null;
-        Claims claims = parseToken(jwtToken, secretKey);
+        Claims claims = parseAccessToken(token, secretKey);
         if (claims != null) {
             username = claims.getSubject();
         }
@@ -95,11 +125,11 @@ public class JwtTokenUtils {
     /**
      * 直接解析 jwtToken 的 payload 部分获取 username
      *
-     * @param jwtToken
+     * @param token
      * @return
      */
-    public static String getUsernameFromPayload(String jwtToken) {
-        String payload = TextCodec.BASE64URL.decodeToString(jwtToken.split("\\.")[1]);
+    public static String getUsernameFromPayload(String token) {
+        String payload = TextCodec.BASE64URL.decodeToString(token.split("\\.")[1]);
         String username = null;
         try {
             username = (String) new ObjectMapper().readValue(payload, Map.class).get("sub");
@@ -112,12 +142,12 @@ public class JwtTokenUtils {
     /**
      * 获取 token 创建时间
      *
-     * @param jwtToken
+     * @param token
      * @return
      */
-    public static Date getIssuedAt(String jwtToken, String secretKey) {
+    public static Date getIssuedAt(String token, String secretKey) {
         Date issuedAt = null;
-        Claims claims = parseToken(jwtToken, secretKey);
+        Claims claims = parseAccessToken(token, secretKey);
         if (claims != null) {
             issuedAt = claims.getIssuedAt();
         }
@@ -127,12 +157,12 @@ public class JwtTokenUtils {
     /**
      * 判断 token 是否过期
      *
-     * @param jwtToken
+     * @param token
      * @return
      */
-    public boolean isExpire(String jwtToken, String secretKey) {
+    public boolean isExpire(String token, String secretKey) {
         boolean isExpire = true;
-        Claims claims = parseToken(jwtToken, secretKey);
+        Claims claims = parseAccessToken(token, secretKey);
         if (claims != null) {
             isExpire = claims.getExpiration().before(new Date());
         }
@@ -146,5 +176,24 @@ public class JwtTokenUtils {
      */
     public static String generateSecretKey() {
         return UUID.randomUUID().toString().replace("-", "");
+    }
+
+    /**
+     * 同时创建 access token、refresh token
+     *
+     * @param username
+     * @param secretKey
+     * @return
+     */
+    public static Map<String, String> createTokenMap(String username, String secretKey) {
+        // 创建 access token
+        String accessToken = JwtTokenUtils.createAccessToken(username, secretKey);
+        // 创建 refresh token
+        String refreshToken = JwtTokenUtils.createRefreshToken(username, secretKey);
+        // 将生成的 token 返回给客户端
+        Map<String, String> tokenMap = new HashMap<>();
+        tokenMap.put("accessToken", accessToken);
+        tokenMap.put("refreshToken", refreshToken);
+        return tokenMap;
     }
 }

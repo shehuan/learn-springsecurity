@@ -54,14 +54,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     MyAuthenticationFailureHandler myAuthenticationFailureHandler;
 
-    @Bean
-    LoginFilter loginFilter() throws Exception {
-        LoginFilter loginFilter = new LoginFilter();
-        loginFilter.setAuthenticationManager(authenticationManagerBean());
-        loginFilter.setAuthenticationSuccessHandler(myAuthenticationSuccessHandler);
-        loginFilter.setAuthenticationFailureHandler(myAuthenticationFailureHandler);
-        return loginFilter;
-    }
+//    @Bean
+//    LoginFilter loginFilter() throws Exception {
+//        LoginFilter loginFilter = new LoginFilter();
+//        loginFilter.setAuthenticationManager(authenticationManagerBean());
+//        loginFilter.setAuthenticationSuccessHandler(myAuthenticationSuccessHandler);
+//        loginFilter.setAuthenticationFailureHandler(myAuthenticationFailureHandler);
+//        return loginFilter;
+//    }
 
     @Bean
     LoginFilter2 loginFilter2() throws Exception {
@@ -83,7 +83,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/js/**", "/css/**", "/images/**");
+        web.ignoring().antMatchers("/js/**", "/css/**", "/images/**", "/token/refresh")
+                .antMatchers(TokenAuthenticationFilter.ignoreUrls);
     }
 
     @Override

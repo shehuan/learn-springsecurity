@@ -4,6 +4,7 @@ import com.sh.security4.bean.User;
 import com.sh.security4.dao.UserDao;
 import com.sh.security4.utils.JwtTokenUtils;
 import com.sh.security4.utils.SecurityUtils;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -43,11 +44,25 @@ public class UserService implements UserDetailsService {
         userDao.updateSecretKey(username, JwtTokenUtils.generateSecretKey());
     }
 
-//    public Map<String, String> tokenRefresh(String refreshToken) {
-//        String username = JwtTokenUtils.getUsernameFromPayload(refreshToken);
-//        if (!StringUtils.hasText(username)) {
-//            return null;
-//        }
-//
-//    }
+    public Map<String, String> tokenRefresh(String refreshToken) {
+        // 直接解析用户化名
+        String username = JwtTokenUtils.getUsernameFromPayload(refreshToken);
+        if (!StringUtils.hasText(username)) {
+            return null;
+        }
+        // 查询用户
+        User user = (User) loadUserByUsername(username);
+        if (user == null) {
+            return null;
+        }
+        // 解析 token
+        Claims claims = JwtTokenUtils.parseRefreshToken(refreshToken, user.getSecretKey());
+        if (claims == null) {
+            return null;
+        }
+        // 更新密钥
+        updateSecretKey(username);
+        // 生成新 token
+        return JwtTokenUtils.createTokenMap(username, user.getSecretKey());
+    }
 }

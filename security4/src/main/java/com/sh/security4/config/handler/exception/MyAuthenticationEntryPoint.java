@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * 未登录的匿名用户、token 校验不通过的处理
+ * 未登录的匿名用户的处理
  */
 @Component
 public class MyAuthenticationEntryPoint implements AuthenticationEntryPoint {

@@ -40,6 +40,10 @@ public class MyController {
 
     @GetMapping("/token/refresh")
     public Response<Map<String, String>> tokenRefresh(String refreshToken) {
-        return Response.success();
+        Map<String, String> tokenMap = userService.tokenRefresh(refreshToken);
+        if (tokenMap == null) {
+            return Response.error(403, "refreshToken 无效！");
+        }
+        return Response.success(tokenMap, "token 刷新成功");
     }
 }

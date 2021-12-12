@@ -19,6 +19,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -108,15 +109,15 @@ public class LoginFilter2 extends AbstractAuthenticationProcessingFilter {
      */
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException {
-        // 每次登录时也可以修改直接修改密钥，这样其它已登录的用户就需要重新登录，也就禁止了一个账号在多个地方同时登录
-
         SecurityUtils.setAuthentication(authResult);
+        // 更新密钥
+        // 每次登录时也可以修改直接修改密钥，这样其它已登录的用户就需要重新登录，也就禁止了一个账号在多个地方同时登录
+        userService.updateSecretKey(authResult.getName());
         // 查询密钥
         String secretKey = ((User) userService.loadUserByUsername(authResult.getName())).getSecretKey();
         // 创建 token
-        String jwtToken = JwtTokenUtils.createAccessToken(authResult.getName(), secretKey);
-        // 将生成的 token 返回给客户端
-        Response<String> resp = Response.success(jwtToken, "登录成功！");
+        Map<String, String> tokenMap = JwtTokenUtils.createTokenMap(authResult.getName(), secretKey);
+        Response<Map<String, String>> resp = Response.success(tokenMap, "登录成功！");
         ResponseUtils.write(response, resp);
     }
 
