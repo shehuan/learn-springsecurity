@@ -28,7 +28,7 @@ public class MyAuthenticationSuccessHandler implements AuthenticationSuccessHand
         // 查询密钥
         String secretKey = ((User) userService.loadUserByUsername(authentication.getName())).getSecretKey();
         // 创建 token
-        String jwtToken = JwtTokenUtils.createAccessToken(authentication.getName(), secretKey);
+        String jwtToken = JwtTokenUtils.createToken(authentication.getName(), secretKey, false);
         // 将生成的 token 返回给客户端
         Response<String> resp = Response.success(jwtToken, "登录成功！");
         ResponseUtils.write(response, resp);

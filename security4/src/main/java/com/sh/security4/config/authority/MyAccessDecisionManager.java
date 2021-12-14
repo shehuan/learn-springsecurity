@@ -14,20 +14,13 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 
 /**
- * 将当前用户具有的权限和MyFilterInvocationSecurityMetadataSource中getAttributes()方法的角色对比
+ * 将当前用户拥有的权限（authentication.getAuthorities()）
+ * 和访问路径需要的角色（configAttributes，MyFilterInvocationSecurityMetadataSource => getAttributes()）对比
  */
 @Component
 public class MyAccessDecisionManager implements AccessDecisionManager {
     @Override
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) throws AccessDeniedException, InsufficientAuthenticationException {
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-
-        // 未登录的匿名用户
-        if (authentication instanceof AnonymousAuthenticationToken) {
-            throw new BadCredentialsException("请登录后访问！");
-        }
-
-        // configAttributes是MyFilterInvocationSecurityMetadataSource中getAttributes()方法的返回值
         for (ConfigAttribute ca : configAttributes) {
             String needRole = ca.getAttribute();
             if ("ROLE_all".equals(needRole)) {
@@ -35,8 +28,13 @@ public class MyAccessDecisionManager implements AccessDecisionManager {
                 return;
             }
 
-            // 将当前用户具有的角色和访问路径需要的角色比对
-            for (GrantedAuthority authority : authorities) {
+            // 未登录的匿名用户（理论上未登录的请求在前边已被拦截）
+            if (authentication instanceof AnonymousAuthenticationToken) {
+                throw new BadCredentialsException("请登录后访问！");
+            }
+
+            // 将当前用户拥有的角色和访问路径需要的角色比对
+            for (GrantedAuthority authority : authentication.getAuthorities()) {
                 // 当前用户拥有需要的角色
                 if (authority.getAuthority().equals(ca.getAttribute())) {
                     // 直接放行

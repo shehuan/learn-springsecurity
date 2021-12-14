@@ -28,6 +28,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    // 登录后就可以访问的地址，不需要分配角色
+//    public final static String[] ignoreAuthorityUrls = new String[]{""};
+
     @Autowired
     UserService userService;
 
@@ -76,15 +79,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     /**
-     * 在这里可以配置那些不需要登录就可以访问的接口，以及不拦截静态资源
+     * 在这里可以配置不拦截静态资源（也可以配置不需要登录就可以访问的接口，目前在角色匹配时处理的）
      *
      * @param web
      * @throws Exception
      */
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/js/**", "/css/**", "/images/**", "/token/refresh")
-                .antMatchers(TokenAuthenticationFilter.ignoreUrls);
+        web.ignoring().antMatchers("/js/**", "/css/**", "/images/**");
     }
 
     @Override

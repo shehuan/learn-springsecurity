@@ -32,18 +32,37 @@ public class UserService implements UserDetailsService {
         return user;
     }
 
+    /**
+     * 修改密码
+     *
+     * @param password
+     */
     @Transactional
     public void changePassword(String password) {
         String username = SecurityUtils.getUsername();
         userDao.updatePassword(username, SecurityUtils.encodePassword(password));
-        userDao.updateSecretKey(username, JwtTokenUtils.generateSecretKey());
+        updateSecretKey(username);
         SecurityUtils.setAuthentication(null);
     }
 
-    public void updateSecretKey(String username) {
-        userDao.updateSecretKey(username, JwtTokenUtils.generateSecretKey());
+    /**
+     * 更新密钥
+     *
+     * @param username
+     * @return
+     */
+    public String updateSecretKey(String username) {
+        String secretKey = JwtTokenUtils.generateSecretKey();
+        userDao.updateSecretKey(username, secretKey);
+        return secretKey;
     }
 
+    /**
+     * 刷新 token
+     *
+     * @param refreshToken
+     * @return
+     */
     public Map<String, String> tokenRefresh(String refreshToken) {
         // 直接解析用户化名
         String username = JwtTokenUtils.getUsernameFromPayload(refreshToken);
@@ -56,13 +75,13 @@ public class UserService implements UserDetailsService {
             return null;
         }
         // 解析 token
-        Claims claims = JwtTokenUtils.parseRefreshToken(refreshToken, user.getSecretKey());
+        Claims claims = JwtTokenUtils.parseToken(refreshToken, user.getSecretKey(), true);
         if (claims == null) {
             return null;
         }
         // 更新密钥
-        updateSecretKey(username);
+        String secretKey = updateSecretKey(username);
         // 生成新 token
-        return JwtTokenUtils.createTokenMap(username, user.getSecretKey());
+        return JwtTokenUtils.createTokenMap(username, secretKey);
     }
 }

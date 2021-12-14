@@ -110,11 +110,9 @@ public class LoginFilter2 extends AbstractAuthenticationProcessingFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException {
         SecurityUtils.setAuthentication(authResult);
-        // 更新密钥
         // 每次登录时也可以修改直接修改密钥，这样其它已登录的用户就需要重新登录，也就禁止了一个账号在多个地方同时登录
-        userService.updateSecretKey(authResult.getName());
-        // 查询密钥
-        String secretKey = ((User) userService.loadUserByUsername(authResult.getName())).getSecretKey();
+        String secretKey = userService.updateSecretKey(authResult.getName());
+//        String secretKey = ((User) userService.loadUserByUsername(authResult.getName())).getSecretKey();
         // 创建 token
         Map<String, String> tokenMap = JwtTokenUtils.createTokenMap(authResult.getName(), secretKey);
         Response<Map<String, String>> resp = Response.success(tokenMap, "登录成功！");
