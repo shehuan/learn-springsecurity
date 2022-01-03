@@ -23,7 +23,7 @@ public class MyAccessDecisionManager implements AccessDecisionManager {
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) throws AccessDeniedException, InsufficientAuthenticationException {
         for (ConfigAttribute ca : configAttributes) {
             String needRole = ca.getAttribute();
-            if ("ROLE_all".equals(needRole)) {
+            if ("ROLE_common".equals(needRole)) {
                 // 直接放行
                 return;
             }

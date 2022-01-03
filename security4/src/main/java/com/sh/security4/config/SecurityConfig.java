@@ -79,7 +79,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     /**
-     * 在这里可以配置不拦截静态资源（也可以配置不需要登录就可以访问的接口，目前在角色匹配时处理的）
+     * 在这里可以配置不拦截静态资源（也可以配置不需要登录就可以访问的接口，目前在 TokenAuthenticationFilter 处理的）
      *
      * @param web
      * @throws Exception

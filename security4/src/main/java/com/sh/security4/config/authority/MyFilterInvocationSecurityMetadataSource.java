@@ -46,7 +46,7 @@ public class MyFilterInvocationSecurityMetadataSource implements FilterInvocatio
             }
         }
         // 当前请求地址不需要特定角色，即一些公共的接口，但也需要登录
-        return SecurityConfig.createList("ROLE_all");
+        return SecurityConfig.createList("ROLE_common");
     }
 
     @Override
