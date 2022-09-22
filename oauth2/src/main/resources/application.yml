@@ -1,0 +1,11 @@
+server:
+  port: 7005
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: 014c72ade025d639985d
+            client-secret: b64f2e06a621932bf48e822289355c27e6bdcab6
