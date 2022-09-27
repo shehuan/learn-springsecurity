@@ -1,0 +1,31 @@
+server:
+  port: 7008
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          auth-code:
+            provider: shehuan
+            client-id: my_client
+            client-secret: 123456
+            authorization-grant-type: authorization_code
+            redirect-uri: http://client.shehuan.com:7008/login/oauth2/code/shehuan
+            scope: read:msg
+          client-creds:
+            provider: shehuan
+            client-id: my_client
+            client-secret: 123456
+            authorization-grant-type: client_credentials
+            scope: read:msg
+          password:
+            provider: shehuan
+            client-id: my_client
+            client-secret: 123456
+            authorization-grant-type: password
+            scope: read:msg
+        provider:
+          shehuan:
+            authorization-uri: http://auth.shehuan.com:7006/oauth/authorize
+            token-uri: http://auth.shehuan.com:7006/oauth/token
+

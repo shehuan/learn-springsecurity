@@ -1,0 +1,10 @@
+server:
+  port: 7007
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        opaquetoken:
+          introspection-uri: http://auth.shehuan.com:7006/oauth/check_token
+          client-id: my_client
+          client-secret: 123456
