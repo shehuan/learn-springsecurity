@@ -11,11 +11,14 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.code.InMemoryAuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
+
+import javax.sql.DataSource;
 
 /**
  * description：授权服务器配置
@@ -37,6 +40,15 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    // 将客户端信息保存到数据库，需要先建表，再插入客户端信息
+    @Autowired
+    DataSource dataSource;
+    // bean 名称不能是 clientDetailsService
+    @Bean
+    ClientDetailsService clientDetailsService2() {
+        return new JdbcClientDetailsService(dataSource);
+    }
+
     /**
      * 配置 Access Token 基本信息
      *
@@ -48,8 +60,10 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
         services.setClientDetailsService(clientDetailsService);
         services.setSupportRefreshToken(true);
         services.setTokenStore(tokenStore);
-        services.setAccessTokenValiditySeconds(60);
-        services.setRefreshTokenValiditySeconds(60 * 2);
+
+        // 令牌有效期也从数据库加载
+//        services.setAccessTokenValiditySeconds(60);
+//        services.setRefreshTokenValiditySeconds(60 * 2);
         return services;
     }
 
@@ -73,13 +87,17 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
      */
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients.inMemory()
-                .withClient("my_client")
-                .secret(passwordEncoder.encode("123456"))
-//                .autoApprove(true)
-                .authorizedGrantTypes("authorization_code", "refresh_token", "implicit", "password", "client_credentials")
-                .scopes("read:user", "read:msg")
-                .redirectUris("http://client.shehuan.com:7008/login/oauth2/code/shehuan");
+        // 保存在内存中
+//        clients.inMemory()
+//                .withClient("my_client")
+//                .secret(passwordEncoder.encode("123456")) // $2a$10$jZNjCQjEIS2XkjN8/mBgOO20q71yWuA8MOhCtf5dYXcaJBZOzEL3G
+////                .autoApprove(true)
+//                .authorizedGrantTypes("authorization_code", "refresh_token", "implicit", "password", "client_credentials")
+//                .scopes("read:user", "read:msg")
+//                .redirectUris("http://client.shehuan.com:7008/login/oauth2/code/shehuan");
+
+        // 保存在数据库
+        clients.withClientDetails(clientDetailsService2());
     }
 
     /**

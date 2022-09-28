@@ -6,3 +6,8 @@ spring:
     host: 127.0.0.1
     port: 6379
     password:
+  datasource:
+    url: jdbc:mysql://localhost:3306/security?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&useTimezone=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: shehuan
+    driver-class-name: com.mysql.cj.jdbc.Driver
