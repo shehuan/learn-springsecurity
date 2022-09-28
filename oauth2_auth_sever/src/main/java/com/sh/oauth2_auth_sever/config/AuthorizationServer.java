@@ -16,9 +16,12 @@ import org.springframework.security.oauth2.provider.code.AuthorizationCodeServic
 import org.springframework.security.oauth2.provider.code.InMemoryAuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 
 import javax.sql.DataSource;
+import java.util.Arrays;
 
 /**
  * description：授权服务器配置
@@ -40,9 +43,13 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @Autowired
+    JwtAccessTokenConverter jwtAccessTokenConverter;
+
     // 将客户端信息保存到数据库，需要先建表，再插入客户端信息
     @Autowired
     DataSource dataSource;
+
     // bean 名称不能是 clientDetailsService
     @Bean
     ClientDetailsService clientDetailsService2() {
@@ -64,6 +71,11 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
         // 令牌有效期也从数据库加载
 //        services.setAccessTokenValiditySeconds(60);
 //        services.setRefreshTokenValiditySeconds(60 * 2);
+
+        // JWT 相关配置
+        TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
+        tokenEnhancerChain.setTokenEnhancers(Arrays.asList(jwtAccessTokenConverter));
+        services.setTokenEnhancer(tokenEnhancerChain);
         return services;
     }
 
