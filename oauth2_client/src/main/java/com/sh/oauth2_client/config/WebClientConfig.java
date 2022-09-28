@@ -24,6 +24,12 @@ import java.util.function.Function;
 @Configuration
 public class WebClientConfig {
 
+    /**
+     * 使用 WebClient 发起认证请求
+     *
+     * @param manager
+     * @return
+     */
     @Bean
     WebClient webClient(OAuth2AuthorizedClientManager manager) {
         ServletOAuth2AuthorizedClientExchangeFilterFunction filterFunction =
@@ -31,6 +37,15 @@ public class WebClientConfig {
         return WebClient.builder().apply(filterFunction.oauth2Configuration()).build();
     }
 
+    /**
+     * OAuth2AuthorizedClientManager 使用 OAuth2AuthorizedClientProvider 对不同的客户端进行授权
+     * <p>
+     * 不同的授权模式有不同的 OAuth2AuthorizedClientProvider 实例
+     *
+     * @param clientRegistrationRepository
+     * @param authorizedClientRepository
+     * @return
+     */
     @Bean
     OAuth2AuthorizedClientManager auth2AuthorizedClientManager(ClientRegistrationRepository clientRegistrationRepository,
                                                                OAuth2AuthorizedClientRepository authorizedClientRepository) {
@@ -48,6 +63,11 @@ public class WebClientConfig {
         return authorizedClientManager;
     }
 
+    /**
+     * 密码模式需要输入用户名密码，这里将请求中用户名密码提取出来存到 contextAttributes
+     *
+     * @return
+     */
     private Function<OAuth2AuthorizeRequest, Map<String, Object>> contextAttributesMapper() {
         return authorizeRequest -> {
             Map<String, Object> contextAttributes = Collections.emptyMap();

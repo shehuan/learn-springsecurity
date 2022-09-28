@@ -5,6 +5,6 @@ spring:
     oauth2:
       resourceserver:
         opaquetoken:
-          introspection-uri: http://auth.shehuan.com:7006/oauth/check_token
-          client-id: my_client
-          client-secret: 123456
+          introspection-uri: http://auth.shehuan.com:7006/oauth/check_token # \u4EE4\u724C\u68C0\u9A8C\u5730\u5740
+          client-id: my_client # \u5BA2\u6237\u7AEFid
+          client-secret: 123456 # \u5BA2\u6237\u7AEFsecret

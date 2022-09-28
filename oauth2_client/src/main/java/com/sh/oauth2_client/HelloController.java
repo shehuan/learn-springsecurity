@@ -22,6 +22,7 @@ public class HelloController {
     @Autowired
     WebClient webClient;
 
+    // 要请求的资源地址
     private String helloUri = "http://res.shehuan.com:7007/hello";
 
     @GetMapping(value = "/authorize", params = "grant_type=authorization_code")
@@ -65,6 +66,13 @@ public class HelloController {
         return "index";
     }
 
+    /**
+     * 获取令牌，
+     * 如果客户端支持多种授权模式，需要指定授权模式id，例如下边的 auth-code
+     *
+     * @param authorizedClient
+     * @return
+     */
     @GetMapping("/token")
     @ResponseBody
     public String token(@RegisteredOAuth2AuthorizedClient("auth-code")

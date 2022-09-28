@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
  * description：授权服务器配置
  * time：2022/9/23 11:59
  */
+// 开启授权服务器自动化配置
 @EnableAuthorizationServer
 @Configuration
 public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
