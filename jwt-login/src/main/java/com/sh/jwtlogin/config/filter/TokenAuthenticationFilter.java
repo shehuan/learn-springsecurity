@@ -2,7 +2,7 @@ package com.sh.jwtlogin.config.filter;
 
 import com.sh.jwtlogin.bean.Response;
 import com.sh.jwtlogin.bean.User;
-import com.sh.jwtlogin.config.SecurityConfig;
+import com.sh.jwtlogin.constant.TokenType;
 import com.sh.jwtlogin.service.UserService;
 import com.sh.jwtlogin.utils.JwtTokenUtils;
 import com.sh.jwtlogin.utils.ResponseUtils;
@@ -45,9 +45,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     UserService userService;
 
-    @Autowired
-    SecurityConfig securityConfig;
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // 从请求头取出 assessToken
@@ -72,7 +69,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         // 校验 token
-        Claims claims = JwtTokenUtils.parseToken(accessToken, user.getSecretKey(), false);
+        Claims claims = JwtTokenUtils.parseToken(accessToken, user.getSecretKey(), TokenType.ACCESS);
         if (claims != null) {
             // 校验成功，设置用户认证信息
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), null, user.getAuthorities());

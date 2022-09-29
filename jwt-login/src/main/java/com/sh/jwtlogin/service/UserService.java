@@ -1,6 +1,7 @@
 package com.sh.jwtlogin.service;
 
 import com.sh.jwtlogin.bean.User;
+import com.sh.jwtlogin.constant.TokenType;
 import com.sh.jwtlogin.dao.UserDao;
 import com.sh.jwtlogin.utils.JwtTokenUtils;
 import com.sh.jwtlogin.utils.SecurityUtils;
@@ -75,7 +76,7 @@ public class UserService implements UserDetailsService {
             return null;
         }
         // 解析 token
-        Claims claims = JwtTokenUtils.parseToken(refreshToken, user.getSecretKey(), true);
+        Claims claims = JwtTokenUtils.parseToken(refreshToken, user.getSecretKey(), TokenType.REFRESH);
         if (claims == null) {
             return null;
         }
