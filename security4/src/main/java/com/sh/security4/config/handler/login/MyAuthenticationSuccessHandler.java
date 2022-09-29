@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * description：
@@ -28,9 +29,9 @@ public class MyAuthenticationSuccessHandler implements AuthenticationSuccessHand
         // 查询密钥
         String secretKey = ((User) userService.loadUserByUsername(authentication.getName())).getSecretKey();
         // 创建 token
-        String jwtToken = JwtTokenUtils.createToken(authentication.getName(), secretKey, false);
+        Map<String, String> tokenMap = JwtTokenUtils.createTokenMap(authentication.getName(), secretKey);
         // 将生成的 token 返回给客户端
-        Response<String> resp = Response.success(jwtToken, "登录成功！");
+        Response<Map<String, String>> resp = Response.success(tokenMap, "登录成功！");
         ResponseUtils.write(response, resp);
     }
 }

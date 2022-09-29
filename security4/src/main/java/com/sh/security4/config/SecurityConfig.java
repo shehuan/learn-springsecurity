@@ -57,21 +57,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     MyAuthenticationFailureHandler myAuthenticationFailureHandler;
 
-//    @Bean
-//    LoginFilter loginFilter() throws Exception {
-//        LoginFilter loginFilter = new LoginFilter();
-//        loginFilter.setAuthenticationManager(authenticationManagerBean());
-//        loginFilter.setAuthenticationSuccessHandler(myAuthenticationSuccessHandler);
-//        loginFilter.setAuthenticationFailureHandler(myAuthenticationFailureHandler);
-//        return loginFilter;
-//    }
-
     @Bean
-    LoginFilter2 loginFilter2() throws Exception {
-        LoginFilter2 loginFilter2 = new LoginFilter2("/login", authenticationManagerBean());
-        loginFilter2.setUserService(userService);
-        return loginFilter2;
+    LoginFilter loginFilter() throws Exception {
+        LoginFilter loginFilter = new LoginFilter();
+        loginFilter.setAuthenticationManager(authenticationManagerBean());
+        loginFilter.setAuthenticationSuccessHandler(myAuthenticationSuccessHandler);
+        loginFilter.setAuthenticationFailureHandler(myAuthenticationFailureHandler);
+        return loginFilter;
     }
+
+//    @Bean
+//    LoginFilter2 loginFilter2() throws Exception {
+//        LoginFilter2 loginFilter2 = new LoginFilter2("/login", authenticationManagerBean());
+//        loginFilter2.setUserService(userService);
+//        return loginFilter2;
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -120,7 +120,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf().disable()// 关闭csrf
                 .sessionManagement().disable() // 禁用session
-                .addFilterAt(loginFilter2(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(loginFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 // 退出登录
                 .logout()
