@@ -132,7 +132,7 @@
 //                .exceptionHandling()
 //                // 访问接口时如果无权限的处理
 //                .accessDeniedHandler(myAccessDeniedHandler)
-//                // 访问接口时如果token校验不通过的处理
+//                // 登录时认证失败
 //                .authenticationEntryPoint(myAuthenticationEntryPoint);
 //    }
 //}

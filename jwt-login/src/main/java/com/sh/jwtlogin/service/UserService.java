@@ -1,6 +1,7 @@
 package com.sh.jwtlogin.service;
 
 import com.sh.jwtlogin.bean.User;
+import com.sh.jwtlogin.constant.Constants;
 import com.sh.jwtlogin.constant.TokenType;
 import com.sh.jwtlogin.dao.UserDao;
 import com.sh.jwtlogin.utils.JwtTokenUtils;
@@ -20,6 +21,9 @@ import java.util.Map;
 public class UserService implements UserDetailsService {
     @Autowired
     UserDao userDao;
+
+    @Autowired
+    RedisService redisService;
 
     /**
      * 根据用户名查找用户信息
@@ -42,47 +46,7 @@ public class UserService implements UserDetailsService {
     public void changePassword(String password) {
         String username = SecurityUtils.getUsername();
         userDao.updatePassword(username, SecurityUtils.encodePassword(password));
-        updateSecretKey(username);
         SecurityUtils.setAuthentication(null);
-    }
-
-    /**
-     * 更新密钥
-     *
-     * @param username
-     * @return
-     */
-    public String updateSecretKey(String username) {
-        String secretKey = JwtTokenUtils.generateSecretKey();
-        userDao.updateSecretKey(username, secretKey);
-        return secretKey;
-    }
-
-    /**
-     * 刷新 token
-     *
-     * @param refreshToken
-     * @return
-     */
-    public Map<String, String> tokenRefresh(String refreshToken) {
-        // 直接解析用户化名
-        String username = JwtTokenUtils.getUsernameFromPayload(refreshToken);
-        if (!StringUtils.hasText(username)) {
-            return null;
-        }
-        // 查询用户
-        User user = (User) loadUserByUsername(username);
-        if (user == null) {
-            return null;
-        }
-        // 解析 token
-        Claims claims = JwtTokenUtils.parseToken(refreshToken, user.getSecretKey(), TokenType.REFRESH);
-        if (claims == null) {
-            return null;
-        }
-        // 更新密钥
-        String secretKey = updateSecretKey(username);
-        // 生成新 token
-        return JwtTokenUtils.createTokenMap(username, secretKey);
+        redisService.deleteObject(Constants.LOGIN_TOKEN_KEY + username);
     }
 }

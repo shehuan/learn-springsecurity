@@ -3,6 +3,7 @@ package com.sh.jwtlogin.config.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sh.jwtlogin.bean.Response;
 import com.sh.jwtlogin.config.exception.VerificationCodeErrorException;
+import com.sh.jwtlogin.service.TokenService;
 import com.sh.jwtlogin.service.UserService;
 import com.sh.jwtlogin.utils.JwtTokenUtils;
 import com.sh.jwtlogin.utils.ResponseUtils;
@@ -38,15 +39,15 @@ public class LoginFilter2 extends AbstractAuthenticationProcessingFilter {
 
     public static final String CODE_KEY = "code";
 
-    private UserService userService;
+    private TokenService tokenService;
 
     public LoginFilter2(String defaultFilterProcessesUrl, AuthenticationManager authenticationManager) {
         super(new AntPathRequestMatcher(defaultFilterProcessesUrl, "POST"));
         setAuthenticationManager(authenticationManager);
     }
 
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    public void setUserService(TokenService tokenService) {
+        this.tokenService = tokenService;
     }
 
     /**
@@ -108,11 +109,8 @@ public class LoginFilter2 extends AbstractAuthenticationProcessingFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException {
         SecurityUtils.setAuthentication(authResult);
-        // 每次登录时也可以修改直接修改密钥，这样其它已登录的用户就需要重新登录，也就禁止了一个账号在多个地方同时登录
-        String secretKey = userService.updateSecretKey(authResult.getName());
-//        String secretKey = ((User) userService.loadUserByUsername(authResult.getName())).getSecretKey();
         // 创建 token
-        Map<String, String> tokenMap = JwtTokenUtils.createTokenMap(authResult.getName(), secretKey);
+        Map<String, String> tokenMap = tokenService.createTokenMap(authResult.getName());
         Response<Map<String, String>> resp = Response.success(tokenMap, "登录成功！");
         ResponseUtils.write(response, resp);
     }

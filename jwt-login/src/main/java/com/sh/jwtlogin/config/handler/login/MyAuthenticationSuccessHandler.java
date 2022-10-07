@@ -2,6 +2,7 @@ package com.sh.jwtlogin.config.handler.login;
 
 import com.sh.jwtlogin.bean.Response;
 import com.sh.jwtlogin.bean.User;
+import com.sh.jwtlogin.service.TokenService;
 import com.sh.jwtlogin.service.UserService;
 import com.sh.jwtlogin.utils.JwtTokenUtils;
 import com.sh.jwtlogin.utils.ResponseUtils;
@@ -22,14 +23,12 @@ import java.util.Map;
 @Component
 public class MyAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
     @Autowired
-    private UserService userService;
+    private TokenService tokenService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
-        // 查询密钥
-        String secretKey = ((User) userService.loadUserByUsername(authentication.getName())).getSecretKey();
         // 创建 token
-        Map<String, String> tokenMap = JwtTokenUtils.createTokenMap(authentication.getName(), secretKey);
+        Map<String, String> tokenMap = tokenService.createTokenMap(authentication.getName());
         // 将生成的 token 返回给客户端
         Response<Map<String, String>> resp = Response.success(tokenMap, "登录成功！");
         ResponseUtils.write(response, resp);

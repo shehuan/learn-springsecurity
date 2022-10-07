@@ -2,8 +2,10 @@ package com.sh.jwtlogin.config.filter;
 
 import com.sh.jwtlogin.bean.Response;
 import com.sh.jwtlogin.bean.User;
+import com.sh.jwtlogin.constant.Constants;
 import com.sh.jwtlogin.constant.TokenType;
-import com.sh.jwtlogin.service.UserService;
+import com.sh.jwtlogin.service.RedisService;
+import com.sh.jwtlogin.service.TokenService;
 import com.sh.jwtlogin.utils.JwtTokenUtils;
 import com.sh.jwtlogin.utils.ResponseUtils;
 import com.sh.jwtlogin.utils.SecurityUtils;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.annotation.Resource;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +37,9 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
+    @Autowired
+    TokenService tokenService;
+
     // 不需要登录就可以访问的地址
     public final static Map<HttpMethod, String[]> ignoreLoginUrls = new HashMap<HttpMethod, String[]>() {
         {
@@ -43,34 +49,15 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     };
 
     @Autowired
-    UserService userService;
+    RedisService redisService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // 从请求头取出 assessToken
         String accessToken = request.getHeader("accessToken");
-        logger.info("accessToken===>{}", accessToken);
-        if (!StringUtils.hasText(accessToken)) {
-            tokenInvalidResponse(response);
-            return;
-        }
-        // 直接解析 token 第二部分获取用户名
-        String username = JwtTokenUtils.getUsernameFromPayload(accessToken);
-        // 没有用户名，token 可能被篡改了
-        if (!StringUtils.hasText(username)) {
-            tokenInvalidResponse(response);
-            return;
-        }
-        // 查询用户
-        User user = (User) userService.loadUserByUsername(username);
-        // 用户不存在
-        if (user == null) {
-            tokenInvalidResponse(response);
-            return;
-        }
         // 校验 token
-        Claims claims = JwtTokenUtils.parseToken(accessToken, user.getSecretKey(), TokenType.ACCESS);
-        if (claims != null) {
+        User user = tokenService.getUser(accessToken, TokenType.ACCESS);
+        if (user != null) {
             // 校验成功，设置用户认证信息
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), null, user.getAuthorities());
             SecurityUtils.setAuthentication(authenticationToken);

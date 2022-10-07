@@ -93,7 +93,7 @@ public class SecurityConfig2 {
      * ?	匹配任意单个字符
      */
     @Bean
-    SecurityFilterChain securityFilterChain (HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 // 配置动态权限
                 .withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
@@ -123,7 +123,7 @@ public class SecurityConfig2 {
                 .exceptionHandling()
                 // 访问接口时如果无权限的处理
                 .accessDeniedHandler(myAccessDeniedHandler)
-                // 访问接口时如果token校验不通过的处理
+                // 登录认证失败
                 .authenticationEntryPoint(myAuthenticationEntryPoint);
 
         return http.build();

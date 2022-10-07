@@ -1,5 +1,7 @@
 package com.sh.jwtlogin.bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.apache.ibatis.type.Alias;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,6 +17,7 @@ public class User implements UserDetails {
     private String username;
 
     // 密码
+    @JsonIgnore
     private String password;
 
     // 账号是否过期
@@ -29,18 +32,21 @@ public class User implements UserDetails {
     // 账号是否可用
     private boolean enabled;
 
-    // jwt 密钥，修改密码、退出登录时重置，用 uuid 赋值
-    private String secretKey;
-
     // 用户的角色
     private List<Role> roles;
+
+    @JsonIgnore
+    private List<SimpleGrantedAuthority> authorities;
 
     /**
      * 将我们自己定义的角色信息，转换成框架能识别的
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        if (authorities != null) {
+            return authorities;
+        }
+        authorities = new ArrayList<>();
         for (Role role : getRoles()) {
             authorities.add(new SimpleGrantedAuthority(role.getName()));
         }
@@ -107,14 +113,6 @@ public class User implements UserDetails {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
-    }
-
-    public String getSecretKey() {
-        return secretKey;
-    }
-
-    public void setSecretKey(String secretKey) {
-        this.secretKey = secretKey;
     }
 
     public List<Role> getRoles() {

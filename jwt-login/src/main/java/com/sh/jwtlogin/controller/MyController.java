@@ -1,6 +1,7 @@
 package com.sh.jwtlogin.controller;
 
 import com.sh.jwtlogin.bean.Response;
+import com.sh.jwtlogin.service.TokenService;
 import com.sh.jwtlogin.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,9 @@ public class MyController {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    TokenService tokenService;
 
     @GetMapping("/admin/hello")
     public Response<String> adminHello() {
@@ -40,7 +44,7 @@ public class MyController {
 
     @GetMapping("/token/refresh")
     public Response<Map<String, String>> tokenRefresh(String refreshToken) {
-        Map<String, String> tokenMap = userService.tokenRefresh(refreshToken);
+        Map<String, String> tokenMap = tokenService.tokenRefresh(refreshToken);
         if (tokenMap == null) {
             return Response.error(403, "refreshToken 无效！");
         }

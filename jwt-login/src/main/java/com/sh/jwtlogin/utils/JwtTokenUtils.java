@@ -17,6 +17,7 @@ import java.util.UUID;
  * time：2021/12/3 11:44
  */
 public class JwtTokenUtils {
+
     private static final Logger logger = LoggerFactory.getLogger("JwtTokenUtils");
 
     // access token 失效时间
