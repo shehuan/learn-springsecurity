@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sh.jwtlogin.dao.UserDao">
+
+    <resultMap id="userResultMap" type="user">
+        <id property="id" column="id"/>
+        <collection property="roles" column="id" select="findRolesByUserId"/>
+    </resultMap>
+
+    <select id="findUserByUsername" resultMap="userResultMap">
+        select *
+        from t_user
+        where username = #{usrname}
+    </select>
+
+    <select id="findRolesByUserId" resultType="role">
+        select *
+        from t_role
+        where id in (select roles_id from t_user_roles where t_user_id = #{userId})
+    </select>
+
+    <update id="updatePassword" parameterType="string">
+        update t_user set password = #{password} where username = #{username}
+    </update>
+
+    <update id="updateSecretKey" parameterType="string">
+        update t_user set secret_key = #{secretKey} where username = #{username}
+    </update>
+
+</mapper>
