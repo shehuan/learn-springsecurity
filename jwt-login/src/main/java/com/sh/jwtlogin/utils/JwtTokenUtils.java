@@ -93,15 +93,6 @@ public class JwtTokenUtils {
     }
 
     /**
-     * 生成密钥
-     *
-     * @return
-     */
-    public static String generateSecretKey() {
-        return UUID.randomUUID().toString().replace("-", "");
-    }
-
-    /**
      * 同时创建 access token、refresh token
      *
      * @param username

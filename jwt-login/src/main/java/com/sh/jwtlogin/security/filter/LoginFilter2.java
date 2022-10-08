@@ -1,11 +1,9 @@
-package com.sh.jwtlogin.config.filter;
+package com.sh.jwtlogin.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sh.jwtlogin.bean.Response;
-import com.sh.jwtlogin.config.exception.VerificationCodeErrorException;
+import com.sh.jwtlogin.security.handler.exception.VerificationCodeErrorException;
 import com.sh.jwtlogin.service.TokenService;
-import com.sh.jwtlogin.service.UserService;
-import com.sh.jwtlogin.utils.JwtTokenUtils;
 import com.sh.jwtlogin.utils.ResponseUtils;
 import com.sh.jwtlogin.utils.SecurityUtils;
 import org.springframework.http.MediaType;
@@ -46,7 +44,7 @@ public class LoginFilter2 extends AbstractAuthenticationProcessingFilter {
         setAuthenticationManager(authenticationManager);
     }
 
-    public void setUserService(TokenService tokenService) {
+    public void setToeknService(TokenService tokenService) {
         this.tokenService = tokenService;
     }
 

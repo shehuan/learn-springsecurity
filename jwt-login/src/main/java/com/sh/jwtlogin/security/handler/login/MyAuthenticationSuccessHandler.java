@@ -1,10 +1,7 @@
-package com.sh.jwtlogin.config.handler.login;
+package com.sh.jwtlogin.security.handler.login;
 
 import com.sh.jwtlogin.bean.Response;
-import com.sh.jwtlogin.bean.User;
 import com.sh.jwtlogin.service.TokenService;
-import com.sh.jwtlogin.service.UserService;
-import com.sh.jwtlogin.utils.JwtTokenUtils;
 import com.sh.jwtlogin.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;

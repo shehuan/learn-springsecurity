@@ -1,14 +1,14 @@
 package com.sh.jwtlogin.config;
 
-import com.sh.jwtlogin.config.authority.MyAccessDecisionManager;
-import com.sh.jwtlogin.config.authority.MyFilterInvocationSecurityMetadataSource;
-import com.sh.jwtlogin.config.filter.LoginFilter;
-import com.sh.jwtlogin.config.filter.TokenAuthenticationFilter;
-import com.sh.jwtlogin.config.handler.exception.MyAccessDeniedHandler;
-import com.sh.jwtlogin.config.handler.exception.MyAuthenticationEntryPoint;
-import com.sh.jwtlogin.config.handler.login.MyAuthenticationFailureHandler;
-import com.sh.jwtlogin.config.handler.login.MyAuthenticationSuccessHandler;
-import com.sh.jwtlogin.config.handler.logout.MyLogoutSuccessHandler;
+import com.sh.jwtlogin.security.authority.MyAccessDecisionManager;
+import com.sh.jwtlogin.security.authority.MyFilterInvocationSecurityMetadataSource;
+import com.sh.jwtlogin.security.filter.LoginFilter;
+import com.sh.jwtlogin.security.filter.TokenAuthenticationFilter;
+import com.sh.jwtlogin.security.handler.exception.MyAccessDeniedHandler;
+import com.sh.jwtlogin.security.handler.exception.MyAuthenticationEntryPoint;
+import com.sh.jwtlogin.security.handler.login.MyAuthenticationFailureHandler;
+import com.sh.jwtlogin.security.handler.login.MyAuthenticationSuccessHandler;
+import com.sh.jwtlogin.security.handler.logout.MyLogoutSuccessHandler;
 import com.sh.jwtlogin.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

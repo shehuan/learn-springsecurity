@@ -1,4 +1,4 @@
-package com.sh.jwtlogin.config.exception;
+package com.sh.jwtlogin.security.handler.exception;
 
 import org.springframework.security.core.AuthenticationException;
 

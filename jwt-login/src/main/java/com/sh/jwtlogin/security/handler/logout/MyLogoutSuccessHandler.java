@@ -1,4 +1,4 @@
-package com.sh.jwtlogin.config.handler.logout;
+package com.sh.jwtlogin.security.handler.logout;
 
 import com.sh.jwtlogin.bean.Response;
 import com.sh.jwtlogin.bean.User;
@@ -7,9 +7,7 @@ import com.sh.jwtlogin.constant.TokenType;
 import com.sh.jwtlogin.service.RedisService;
 import com.sh.jwtlogin.service.TokenService;
 import com.sh.jwtlogin.service.UserService;
-import com.sh.jwtlogin.utils.JwtTokenUtils;
 import com.sh.jwtlogin.utils.ResponseUtils;
-import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;

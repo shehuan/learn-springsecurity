@@ -1,10 +1,9 @@
-package com.sh.jwtlogin.config.filter;
+package com.sh.jwtlogin.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sh.jwtlogin.bean.User;
 import com.sh.jwtlogin.constant.Constants;
 import com.sh.jwtlogin.service.RedisService;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
@@ -52,6 +51,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         username = (username != null) ? username : "";
         username = username.trim();
         password = (password != null) ? password : "";
+
+        // 可以在这里处理验证码
 
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(username, password);
         setDetails(request, authRequest);

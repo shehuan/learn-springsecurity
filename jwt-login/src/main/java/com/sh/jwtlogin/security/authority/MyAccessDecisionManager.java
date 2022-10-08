@@ -1,4 +1,4 @@
-package com.sh.jwtlogin.config.authority;
+package com.sh.jwtlogin.security.authority;
 
 
 import org.springframework.security.access.AccessDecisionManager;

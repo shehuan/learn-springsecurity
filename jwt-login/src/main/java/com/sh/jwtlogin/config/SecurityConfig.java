@@ -1,13 +1,13 @@
 //package com.sh.jwtlogin.config;
 //
-//import com.sh.jwtlogin.config.authority.*;
-//import com.sh.jwtlogin.config.handler.exception.MyAccessDeniedHandler;
-//import com.sh.jwtlogin.config.handler.exception.MyAuthenticationEntryPoint;
-//import com.sh.jwtlogin.config.handler.login.MyAuthenticationFailureHandler;
-//import com.sh.jwtlogin.config.handler.login.MyAuthenticationSuccessHandler;
-//import com.sh.jwtlogin.config.handler.logout.MyLogoutSuccessHandler;
-//import com.sh.jwtlogin.config.filter.LoginFilter;
-//import com.sh.jwtlogin.config.filter.TokenAuthenticationFilter;
+//import com.sh.jwtlogin.security.authority.*;
+//import com.sh.jwtlogin.security.handler.exception.MyAccessDeniedHandler;
+//import com.sh.jwtlogin.security.handler.exception.MyAuthenticationEntryPoint;
+//import com.sh.jwtlogin.security.handler.login.MyAuthenticationFailureHandler;
+//import com.sh.jwtlogin.security.handler.login.MyAuthenticationSuccessHandler;
+//import com.sh.jwtlogin.security.handler.logout.MyLogoutSuccessHandler;
+//import com.sh.jwtlogin.security.filter.LoginFilter;
+//import com.sh.jwtlogin.security.filter.TokenAuthenticationFilter;
 //import com.sh.jwtlogin.service.UserService;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.context.annotation.Bean;
@@ -32,6 +32,9 @@
 //
 //    @Autowired
 //    UserService userService;
+//
+//    @Autowired
+//    TokenService tokenService;
 //
 //    // 动态权限相关
 //    @Autowired
@@ -68,7 +71,7 @@
 ////    @Bean
 ////    LoginFilter2 loginFilter2() throws Exception {
 ////        LoginFilter2 loginFilter2 = new LoginFilter2("/login", authenticationManagerBean());
-////        loginFilter2.setUserService(userService);
+////        loginFilter2.setTokenService(tokenService);
 ////        return loginFilter2;
 ////    }
 //

@@ -1,4 +1,4 @@
-package com.sh.jwtlogin.config.authority;
+package com.sh.jwtlogin.security.authority;
 
 import com.sh.jwtlogin.bean.Menu;
 import com.sh.jwtlogin.bean.Role;
