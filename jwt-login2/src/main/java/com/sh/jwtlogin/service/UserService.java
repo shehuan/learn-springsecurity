@@ -47,6 +47,6 @@ public class UserService implements UserDetailsService {
         String username = SecurityUtils.getUsername();
         userDao.updatePassword(username, SecurityUtils.encodePassword(password));
         SecurityUtils.setAuthentication(null);
-        redisService.deleteObject(Constants.LOGIN_TOKEN_KEY + username);
+        redisService.deleteObject(Constants.TOKEN_KEY + username);
     }
 }

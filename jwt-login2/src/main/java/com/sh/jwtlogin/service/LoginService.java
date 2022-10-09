@@ -24,15 +24,14 @@ public class LoginService {
         // 校验用户名、密码
         Authentication authenticate = authenticationManager.authenticate(authenticationToken);
         user = (User) authenticate.getPrincipal();
-        // 将用户信息存入 redis
-        redisService.setObject(Constants.LOGIN_TOKEN_KEY + user.getUsername(), user);
         // 生成 token
-        String token = tokenService.createToken(user.getUsername());
+        String token = tokenService.createToken(user);
         return token;
     }
 
     public void logout() {
         String username = SecurityUtils.getUsername();
-        redisService.deleteObject(Constants.LOGIN_TOKEN_KEY + username);
+        String tokenKey = tokenService.getTokenKey(username);
+        redisService.deleteObject(tokenKey);
     }
 }

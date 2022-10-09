@@ -19,6 +19,8 @@ public class User implements UserDetails {
     // 密码
     private String password;
 
+    private Long expireTime;
+
     // 账号是否过期
     private boolean accountNonExpired;
 
@@ -96,6 +98,14 @@ public class User implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Long getExpireTime() {
+        return expireTime;
+    }
+
+    public void setExpireTime(Long expireTime) {
+        this.expireTime = expireTime;
     }
 
     public void setAccountNonExpired(boolean accountNonExpired) {

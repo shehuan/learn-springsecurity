@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -32,9 +34,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
-    @Autowired
-    TokenService tokenService;
-
     // 不需要登录就可以访问的地址
     public final static Map<HttpMethod, String[]> ignoreLoginUrls = new HashMap<HttpMethod, String[]>() {
         {
@@ -43,14 +42,14 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     };
 
     @Autowired
-    RedisService redisService;
+    TokenService tokenService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 从请求头取出 assessToken
-        String accessToken = request.getHeader("token");
+        // 从请求头取出 token
+        String token = tokenService.getToken(request);
         // 校验 token
-        User user = tokenService.getUser(accessToken, TokenType.ACCESS);
+        User user = tokenService.getUser(token);
         if (user == null) {
             // 检验失败，可能过期了、token 被篡改了
             Response<Void> resp = Response.error(401, "token 无效！");
@@ -60,6 +59,10 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         // 校验成功，设置用户认证信息
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUsername(), null, user.getAuthorities());
         SecurityUtils.setAuthentication(authenticationToken);
+
+        // 刷新 token 过期时间的逻辑
+        tokenService.refreshToken(user);
+
         // 放行请求，继续由权限管理模块处理
         // （如果 token 校验、解析失败，也可以直接放行请求，此时权限管理模块会将当前发起请求的用户当做匿名用户来处理）
         filterChain.doFilter(request, response);

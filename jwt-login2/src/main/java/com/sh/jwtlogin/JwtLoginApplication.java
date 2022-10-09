@@ -11,8 +11,7 @@ import org.springframework.stereotype.Repository;
 public class JwtLoginApplication {
 
 	public static void main(String[] args) {
-		ConfigurableApplicationContext run = SpringApplication.run(JwtLoginApplication.class, args);
-		System.out.println(1);
+		SpringApplication.run(JwtLoginApplication.class, args);
 	}
 
 }

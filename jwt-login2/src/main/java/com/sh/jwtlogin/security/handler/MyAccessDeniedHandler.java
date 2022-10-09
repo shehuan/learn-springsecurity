@@ -1,4 +1,4 @@
-package com.sh.jwtlogin.security.handler.exception;
+package com.sh.jwtlogin.security.handler;
 
 import com.sh.jwtlogin.bean.Response;
 import com.sh.jwtlogin.utils.ResponseUtils;
