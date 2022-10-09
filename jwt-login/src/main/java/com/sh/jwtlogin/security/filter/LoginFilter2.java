@@ -22,13 +22,6 @@ import java.util.Map;
 /**
  * 简单版的 UsernamePasswordAuthenticationFilter
  * 用户登录信息校验、生成 token
- * <p>
- * <p>
- * assessToken 一般有效时间很短（可能几十分钟），refreshToken 有效时间比较长一些（可能几天）
- * 登录成功后返回 assessToken、refreshToken，后期的请求需要携带 assessToken
- * 如果 assessToken 过期，则需要前端用 refreshToken 去换取新的 assessToken，再用新的 assessToken 重发上次请求，避免用户重新登录，造成不好的体验
- * 换取新的 assessToken 时，也可以刷新 refreshToken，更新它的有效时间到最大，这样只要用户在 refreshToken 过前持续活跃，就不会重新登录
- * 除非用户在 refreshToken 的有效时间内没有活跃，则下次访问就需要重新登录，这样也就实现了 assessToken 的续签功能
  */
 public class LoginFilter2 extends AbstractAuthenticationProcessingFilter {
     public static final String USERNAME_KEY = "username";
