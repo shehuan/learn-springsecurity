@@ -8,7 +8,6 @@ import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.Map;
 
@@ -31,7 +30,7 @@ public class TokenService {
         if (claims != null) {
             String username = claims.getSubject();
             // 从 redis 查询用户
-            user = redisService.getObject(Constants.LOGIN_TOKEN_KEY + username);
+            user = redisService.getObject(Constants.TOKEN_KEY + username);
         }
         return user;
     }
@@ -50,7 +49,7 @@ public class TokenService {
         }
         String username = claims.getSubject();
         // 查询用户
-        User user = redisService.getObject(Constants.LOGIN_TOKEN_KEY + username);
+        User user = redisService.getObject(Constants.TOKEN_KEY + username);
         if (user == null) {
             return null;
         }

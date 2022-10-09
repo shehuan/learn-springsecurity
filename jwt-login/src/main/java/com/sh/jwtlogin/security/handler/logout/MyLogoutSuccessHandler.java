@@ -38,7 +38,7 @@ public class MyLogoutSuccessHandler implements LogoutSuccessHandler {
         User user = tokenService.getUser(accessToken, TokenType.ACCESS);
         if (user != null) {
             // 从 redis 删除用户信息
-            redisService.deleteObject(Constants.LOGIN_TOKEN_KEY + user.getUsername());
+            redisService.deleteObject(Constants.TOKEN_KEY + user.getUsername());
         }
         Response<Void> resp = Response.success("退出登录成功！");
         ResponseUtils.write(response, resp);

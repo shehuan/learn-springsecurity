@@ -60,7 +60,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         Authentication authenticate = getAuthenticationManager().authenticate(authRequest);
         User user = (User) authenticate.getPrincipal();
         // 将用户信息存入 redis
-        redisService.setObject(Constants.LOGIN_TOKEN_KEY + username, user);
+        redisService.setObject(Constants.TOKEN_KEY + username, user);
         return authenticate;
     }
 }
